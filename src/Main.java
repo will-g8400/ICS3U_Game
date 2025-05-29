@@ -21,6 +21,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, KeyLi
         Scanner scan = new Scanner(System.in);
         System.out.println("please enter a number: ");
         int x = Integer.parseInt(scan.nextLine());
+        int y = 90;
 
         System.out.println(x);
         System.out.println("hello");
