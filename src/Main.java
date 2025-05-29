@@ -14,6 +14,9 @@ import javax.swing.*;
 
 public class Main extends JPanel implements ActionListener, MouseListener, KeyListener {
     //need to create constructor
+    public Main(){
+        int a = 4;
+    }
 
     public static void main(String[] args) {
 
