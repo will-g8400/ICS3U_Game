@@ -13,22 +13,10 @@ import javax.sound.sampled.*;
 import javax.swing.*;
 
 public class Main extends JPanel implements ActionListener, MouseListener, KeyListener {
-    //need to create constructor
+    //constructor
     public Main(){
-        int a = 4;
-    }
-
-    public static void main(String[] args) {
-
-
-        Scanner scan = new Scanner(System.in);
-        System.out.println("please enter a number: ");
-        int x = Integer.parseInt(scan.nextLine());
-        int y = 90;
-
-        System.out.println(x);
-        System.out.println("hello");
-        System.out.println(5);
+        setPreferredSize (new Dimension (600, 600));
+        setBackground (new Color (0, 255, 255));
 
     }
 
@@ -68,5 +56,15 @@ public class Main extends JPanel implements ActionListener, MouseListener, KeyLi
     }
 
     public void keyTyped(KeyEvent e) {
+    }
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Window");
+        Main panel = new Main();
+        frame.add(panel);
+        frame.pack();
+        frame.setVisible(true);
+
+
     }
 }
