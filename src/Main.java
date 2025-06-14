@@ -448,7 +448,10 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             }
             catch (Exception  e) {
             }
-            mergeEffect.start();
+            if (SFXButton == 1) {
+                mergeEffect.start();
+            }
+
         }
 
 
@@ -556,30 +559,30 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         else if (pageSwitch == 2){
 
 
-            //changes the background of game page
-            if (backgroundChange == 1) {
-                setBackground(new Color(237, 225, 200));
-            }
-            else if (backgroundChange == 2){
-                g2D.drawImage(chongqing, 0, 0, getWidth(), getHeight(), this); //sets image as background and scales it
-            }
-            else if (backgroundChange == 3){
-                g2D.drawImage(newYork, 0, 0, getWidth(), getHeight(), this);
-            }
-            else if (backgroundChange == 4){
-                g2D.drawImage(seoul, 0, 0, getWidth(), getHeight(), this);
-            }
 
 
-            //HERE
             if (offscreenGraphics == null) {
                 offscreenImage = createImage(this.getWidth(), this.getHeight());
                 offscreenGraphics = (Graphics2D) offscreenImage.getGraphics();
             }
 
-
             offscreenGraphics.setColor(getBackground());
             offscreenGraphics.fillRect(0, 0, getWidth(), getHeight());
+
+            //changes the background of game page
+            if (backgroundChange == 1) {
+                setBackground(new Color(237, 225, 200));
+            }
+            else if (backgroundChange == 2){
+                offscreenGraphics.drawImage(chongqing, 0, 0, getWidth(), getHeight(), this); //sets image as background and scales it
+            }
+            else if (backgroundChange == 3){
+                offscreenGraphics.drawImage(newYork, 0, 0, getWidth(), getHeight(), this);
+            }
+            else if (backgroundChange == 4){
+                offscreenGraphics.drawImage(seoul, 0, 0, getWidth(), getHeight(), this);
+            }
+
 
 
             offscreenGraphics.setColor(new Color(187, 173, 160)); //250, 248, 239
@@ -601,8 +604,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             }
 
 
-
-
             for (int i = 0; i < 5; i++) {
                 for (int j = 0; j < 5; j++) {
                     if (oldBoard[i][j] != 0 && !Arrays.deepEquals(oldBoard, board)) {
@@ -611,15 +612,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                         int value = oldBoard[i][j];
                         index = (int) (Math.log(value/3.0)/Math.log(2));
                         offscreenGraphics.setColor(colors[index]);
-
-
-
-
                         if (x > 0 && y == 0) {
-
-
-
-
                             if (mergeStepMoved[i][j] != 0) {
                                 offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE + XMove, i * SQUARE_SIZE + TOP_OFFSET + YMove, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
 
@@ -683,9 +676,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                         index = (int) (Math.log(value/3.0)/Math.log(2));
                         offscreenGraphics.setColor(colors[index]);
 
-
                         offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE, i * SQUARE_SIZE + TOP_OFFSET, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
-
 
                     }
                 }
@@ -1273,12 +1264,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
         else if (pageSwitch == 14) {
 
-
-            g2D.drawImage(chongqing, 30, 220, 160, 200, this);
-            g2D.drawImage(newYork, 220, 220, 160, 200, this);
-            g2D.drawImage(seoul, 410, 220, 160, 200, this);
-
-
             setBackground(new Color(189, 211, 116));
             g2D.setFont(new Font("Serif", Font.BOLD, 40));
             g2D.setColor(Color.BLACK);
@@ -1286,18 +1271,42 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
 
             g2D.setFont(new Font("Plain", Font.BOLD, 18));
-            g2D.setStroke(new BasicStroke(6));
 
 
             //image borders
-            g2D.draw(chongqingButton);
-            g2D.draw(newYorkButton);
-            g2D.draw(seoulButton);
+            Rectangle chongqingBorder = new Rectangle(26, 216, 168, 208);
+            Rectangle newYorkBorder = new Rectangle(216, 216, 168, 208);
+            Rectangle seoulBorder = new Rectangle(406, 216, 168, 208);
 
+            g2D.setColor (Color.BLACK);
+            g2D.fill(chongqingBorder);
+            g2D.fill(newYorkBorder);
+            g2D.fill(seoulBorder);
+
+            //indicates which background is chosen
+            if (backgroundChange == 2){
+                g2D.setColor(new Color(244, 114, 76));
+                g2D.fill(chongqingBorder);
+            }
+            else if (backgroundChange == 3){
+                g2D.setColor(new Color(244, 114, 76));
+                g2D.fill(newYorkBorder);
+            }
+            else if (backgroundChange == 4){
+                g2D.setColor(new Color(244, 114, 76));
+                g2D.fill(seoulBorder);
+            }
+
+
+            g2D.setColor(Color.BLACK);
 
             g2D.drawString("Chongqing", 60, 455);
             g2D.drawString("New York", 260, 455);
             g2D.drawString("Seoul", 465, 455);
+
+            g2D.drawImage(chongqing, 30, 220, 160, 200, this);
+            g2D.drawImage(newYork, 220, 220, 160, 200, this);
+            g2D.drawImage(seoul, 410, 220, 160, 200, this);
 
 
             //Back Button
@@ -1510,15 +1519,19 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             }
             else if (chongqingButton.contains(clicked)){
                 backgroundChange = 2;
+                repaint();
             }
             else if (newYorkButton.contains(clicked)){
                 backgroundChange = 3;
+                repaint();
             }
             else if (seoulButton.contains(clicked)){
                 backgroundChange = 4;
+                repaint();
             }
             else if (resetButton.contains(clicked)){
                 backgroundChange = 1;
+                repaint();
             }
         }
     }
