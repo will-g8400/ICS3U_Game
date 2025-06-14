@@ -1,5 +1,5 @@
 
-
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.awt.*;
@@ -33,34 +33,25 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     Rectangle exitButton = new Rectangle(200, 470, 200, 50);
     Rectangle settingsButton = new Rectangle(3, 560, 40, 40);
 
-
     Rectangle backButton = new Rectangle(5, 5, 65, 30);
     Rectangle tutorialNext = new Rectangle(530, 5, 65, 30);
     Rectangle tutorialHome = new Rectangle(250, 540, 100, 40);
 
-
     Rectangle musicOn = new Rectangle(300, 165, 80, 50);
     Rectangle SFXOn = new Rectangle(300, 295, 80, 50);
 
-
     Rectangle backgroundButton = new Rectangle(140,410,300,80);
-
 
     Rectangle chongqingButton = new Rectangle(30, 220, 160, 200);
     Rectangle newYorkButton = new Rectangle(220, 220, 160, 200);
     Rectangle seoulButton = new Rectangle(410, 220, 160, 200);
     Rectangle resetButton = new Rectangle (260, 515, 80, 40);
 
-
     int musicButton = 1;
     int SFXButton = 1;
     int backgroundChange = 1;
 
-
-
-
     static JFrame game;
-
 
     //1: Home, 2: Game, 3-11: Tutorial, 12: Credits, 13: Settings, 14: Custom Backgrounds
     int pageSwitch = 1;
@@ -70,20 +61,12 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     int[][] stepMoved = new int[5][5];
     int[][] mergeStepMoved = new int[5][5];
 
-    Color[] colors = {
-            Color.RED,
-            Color.BLUE,
-            Color.YELLOW,
-            Color.GREEN,
-            Color.PINK,
-            Color.ORANGE,
-            Color.WHITE,
-            Color.GRAY,
-            Color.CYAN,
-            Color.MAGENTA,
-            Color.LIGHT_GRAY,
-            Color.DARK_GRAY
-    };
+
+    BufferedImage [] images_Number = new BufferedImage[11];
+    BufferedImage [] images_Color = new BufferedImage[11];
+    BufferedImage [] images_fruit = new BufferedImage[11];
+
+    BufferedImage [][] imageCollection = {images_Number,images_Color,images_fruit};
 
 
     final int SQUARE_SIZE = 60;
@@ -91,42 +74,38 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     final int BORDER_SIZE = 150;
 
 
+    static int score = 0;
+    static int highScore = 0 ;
+
+
     //used to move the blocks
     int x = 20;
     int y = 20;
 
-
     int XMove = 0;
     int YMove = 0;
-
 
     int rightTracker;
     int leftTracker;
     int downTracker;
     int upTracker;
 
-
     int animationTracker;
     int biggestStep = 0;
-
 
     Timer timer;
     Timer timer2;
     Timer timer3;
 
-
     long lastInputTime;
     long cooldown = 200;
     int key;
-
 
     boolean anti_double_animation = false;
     boolean blockSpawning=true;
     boolean didMove=false;
 
-
     int index;
-
 
     Image offscreenImage;
     Graphics2D offscreenGraphics;
@@ -137,12 +116,10 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         setPreferredSize(new Dimension(600, 600));
         setBackground(new Color(222, 207, 189));
 
-
         setting_icon = Toolkit.getDefaultToolkit().getImage("Setting_Icon.png");
         chongqing = ImageIO.read(new File("chongqingBackground.png"));
         newYork = ImageIO.read(new File("newYorkBackground.png"));
         seoul = ImageIO.read(new File("seoulBackground.png"));
-
 
         addMouseListener(this); //detects button clicks
         addMouseMotionListener(this);
@@ -154,16 +131,13 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         int starterBlock1_X = (int) (Math.random() * 5);
         int starterBlock1_Y = (int) (Math.random() * 5);
 
-
         int starterBlock2_X = (int) (Math.random() * 5);
         int starterBlock2_Y = (int) (Math.random() * 5);
-
 
         while (starterBlock2_X == starterBlock1_X && starterBlock2_Y == starterBlock1_Y) {
             starterBlock2_X = (int) (Math.random() * 5);
             starterBlock2_Y = (int) (Math.random() * 5);
         }
-
 
         int starterBlock3_X = (int) (Math.random() * 5);
         int starterBlock3_Y = (int) (Math.random() * 5);
@@ -180,13 +154,36 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         board[starterBlock2_Y][starterBlock2_X] = 3;
         board[starterBlock3_Y][starterBlock3_X] = 3;
 
-
-
-
         //to intialize so that i can draw the blocks first and then animate the old board to the new board
         oldBoard[starterBlock1_Y][starterBlock1_X] = 3;
         oldBoard[starterBlock2_Y][starterBlock2_X] = 3;
         oldBoard[starterBlock3_Y][starterBlock3_X] = 3;
+
+
+        int start = 3;
+
+        for(int x = 0; x<11; x++){
+            images_Number[x] = ImageIO.read(new File(start+".png"));
+            start*=2;
+        }
+
+        try {
+
+            images_Color[0] = ImageIO.read(new File("red.png"));
+            images_Color[1] = ImageIO.read(new File("blue.png"));
+            images_Color[2] = ImageIO.read(new File("cyan.png"));
+            images_Color[3] = ImageIO.read(new File("lightblue.png"));
+            images_Color[4] = ImageIO.read(new File("darkblue.png"));
+            images_Color[5] = ImageIO.read(new File("green.png"));
+            images_Color[6] = ImageIO.read(new File("orange.png"));
+            images_Color[7] = ImageIO.read(new File("pink.png"));
+            images_Color[8] = ImageIO.read(new File("purple.png"));
+            images_Color[9] = ImageIO.read(new File("yellow.png"));
+            images_Color[10] = ImageIO.read(new File("black.png"));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -278,7 +275,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
         for(int i=0; i< 5; i++) {
 
-
             for (int j = 0; j < 5; j++) {
                 if (board[i][j] == 0) {
                     while (board[randomblockY][randomblockX] != 0) {
@@ -291,7 +287,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             }
         }
     }
-
 
 
 
@@ -378,9 +373,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
     public void merge() {
 
-
         int merge_count_SFX=0;
-
 
         for(int i =0; i<5; i++){
             for(int j = 0; j<5; j++){
@@ -394,6 +387,9 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 for (int col = 4; col > 0; col--) {
                     if (board[row][col] != 0 && board[row][col] == board[row][col - 1]) {
                         board[row][col] *= 2;
+
+                        score+=board[row][col];
+
                         board[row][col - 1] = 0;
                         mergeStepMoved[row][col - 1] = 1;
                         merge_count_SFX++;
@@ -407,6 +403,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 for (int col = 0; col < 4; col++) {
                     if (board[row][col] != 0 && board[row][col] == board[row][col + 1]) {
                         board[row][col] *= 2;
+                        score+=board[row][col];
                         board[row][col + 1] = 0;
                         mergeStepMoved[row][col + 1] = -1;
                         merge_count_SFX++;
@@ -418,11 +415,10 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 for (int row = 4; row > 0; row--) {
                     if (board[row][col] != 0 && board[row][col] == board[row - 1][col]) {
                         board[row][col] *= 2;
+                        score+=board[row][col];
                         board[row - 1][col] = 0;
                         mergeStepMoved[row - 1][col] = 1;
                         merge_count_SFX++;
-
-
                     }
                 }
             }
@@ -431,6 +427,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 for (int row = 0; row < 4; row++) {
                     if (board[row][col] != 0 && board[row][col] == board[row + 1][col]) {
                         board[row][col] *= 2;
+                        score+=board[row][col];
                         board[row + 1][col] = 0;
                         mergeStepMoved[row + 1][col] = -1;
                         merge_count_SFX++;
@@ -438,6 +435,8 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 }
             }
         }
+
+
 
 
         if(merge_count_SFX>0){
@@ -451,9 +450,12 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             mergeEffect.start();
         }
 
+        if(score>highScore){
+            highScore=score;
+        }
+
 
     }
-
 
     public int checkWinner() {
         for (int i = 0; i < 5; i++) {
@@ -468,14 +470,51 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         return 3;
     }
 
+    public void resetBoard(){
+        for(int i = 0; i<5; i++){
+            for(int j = 0 ; j<5; j++){
+                board[i][j]=0;
+                oldBoard[i][j]=0;
+            }
+        }
+
+        int starterBlock1_X = (int) (Math.random() * 5);
+        int starterBlock1_Y = (int) (Math.random() * 5);
+
+        int starterBlock2_X = (int) (Math.random() * 5);
+        int starterBlock2_Y = (int) (Math.random() * 5);
+
+        while (starterBlock2_X == starterBlock1_X && starterBlock2_Y == starterBlock1_Y) {
+            starterBlock2_X = (int) (Math.random() * 5);
+            starterBlock2_Y = (int) (Math.random() * 5);
+        }
+
+        int starterBlock3_X = (int) (Math.random() * 5);
+        int starterBlock3_Y = (int) (Math.random() * 5);
+
+
+        while (starterBlock3_X == starterBlock2_X && starterBlock3_Y == starterBlock2_Y
+                || starterBlock3_X == starterBlock1_X && starterBlock3_Y == starterBlock1_Y) {
+            starterBlock2_X = (int) (Math.random() * 5);
+            starterBlock2_Y = (int) (Math.random() * 5);
+        }
+
+        board[starterBlock1_Y][starterBlock1_X] = 3;
+        board[starterBlock2_Y][starterBlock2_X] = 3;
+        board[starterBlock3_Y][starterBlock3_X] = 3;
+
+        //to intialize so that i can draw the blocks first and then animate the old board to the new board
+        oldBoard[starterBlock1_Y][starterBlock1_X] = 3;
+        oldBoard[starterBlock2_Y][starterBlock2_X] = 3;
+        oldBoard[starterBlock3_Y][starterBlock3_X] = 3;
+
+        repaint();
+    }
 
     public void drawnPages(Graphics2D g2D) {
         System.out.println("drawnpages " + pageSwitch);
         System.out.println("music button " + musicButton);
         System.out.println("SFX button " + SFXButton);
-
-
-
 
         if (pageSwitch == 1) {
             setBackground(new Color(222, 207, 189));
@@ -570,7 +609,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 g2D.drawImage(seoul, 0, 0, getWidth(), getHeight(), this);
             }
 
-
             //HERE
             if (offscreenGraphics == null) {
                 offscreenImage = createImage(this.getWidth(), this.getHeight());
@@ -601,98 +639,121 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             }
 
 
-
-
             for (int i = 0; i < 5; i++) {
                 for (int j = 0; j < 5; j++) {
+
+                    //this variable will be used to decide which skin the user is choosing
+                    //might also need to make this global to change the graphics around
+                    int skin = 0;
+
+
+                    int value = oldBoard[i][j];
+
+                    index = (int) (Math.log(value/3.0)/Math.log(2));
+
+                    Graphics2D g2dTile = (Graphics2D) offscreenGraphics.create();
+
                     if (oldBoard[i][j] != 0 && !Arrays.deepEquals(oldBoard, board)) {
 
 
-                        int value = oldBoard[i][j];
-                        index = (int) (Math.log(value/3.0)/Math.log(2));
-                        offscreenGraphics.setColor(colors[index]);
-
-
-
+                        int x_draw = 0;
+                        int y_draw = 0;
 
                         if (x > 0 && y == 0) {
 
-
-
-
                             if (mergeStepMoved[i][j] != 0) {
-                                offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE + XMove, i * SQUARE_SIZE + TOP_OFFSET + YMove, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
 
+                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
                             } else if (j * SQUARE_SIZE + BORDER_SIZE + XMove < j * SQUARE_SIZE + BORDER_SIZE + stepMoved[i][j] * 60) {
-                                offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE + XMove, i * SQUARE_SIZE + TOP_OFFSET + YMove, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
 
+                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
                             } else {
-                                offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE + stepMoved[i][j] * 60, i * SQUARE_SIZE + TOP_OFFSET, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
-                            }
 
+                                x_draw= j * SQUARE_SIZE + BORDER_SIZE + stepMoved[i][j] * 60;
+                                y_draw = i * SQUARE_SIZE + TOP_OFFSET;
+
+                            }
 
                         } else if (x < 0 && y == 0) {
 
-
                             if (mergeStepMoved[i][j] != 0) {
-                                offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE + XMove, i * SQUARE_SIZE + TOP_OFFSET + YMove, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
+
+                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
+
                             } else if (j * SQUARE_SIZE + BORDER_SIZE + XMove > j * SQUARE_SIZE + BORDER_SIZE + stepMoved[i][j] * 60) {
-                                offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE + XMove, i * SQUARE_SIZE + TOP_OFFSET + YMove, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
+
+                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
+
                             } else {
-                                offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE + stepMoved[i][j] * 60, i * SQUARE_SIZE + TOP_OFFSET, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
+
+                                x_draw= j * SQUARE_SIZE + BORDER_SIZE + stepMoved[i][j] * 60;
+                                y_draw = i * SQUARE_SIZE + TOP_OFFSET;
+
                             }
-
-
                         } else if (y > 0 && x == 0) {
 
-
                             if (mergeStepMoved[i][j] != 0) {
-                                offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE + XMove, i * SQUARE_SIZE + TOP_OFFSET + YMove, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
+
+                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
 
                             } else if (i * SQUARE_SIZE + TOP_OFFSET + YMove < i * SQUARE_SIZE + TOP_OFFSET + stepMoved[i][j] * 60) {
-                                offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE + XMove, i * SQUARE_SIZE + TOP_OFFSET + YMove, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
+
+                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
 
                             } else {
-                                offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE, i * SQUARE_SIZE + TOP_OFFSET + stepMoved[i][j] * 60, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
+
+                                x_draw= j * SQUARE_SIZE + BORDER_SIZE;
+                                y_draw = i * SQUARE_SIZE + TOP_OFFSET + stepMoved[i][j] * 60;
+
                             }
                         } else if (y < 0 && x == 0) {
 
-
                             if (mergeStepMoved[i][j] != 0) {
 
-
-                                offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE + XMove, i * SQUARE_SIZE + TOP_OFFSET + YMove, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
-
+                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
                             } else if (i * SQUARE_SIZE + TOP_OFFSET + YMove > i * SQUARE_SIZE + TOP_OFFSET + stepMoved[i][j] * 60) {
-                                offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE + XMove, i * SQUARE_SIZE + TOP_OFFSET + YMove, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
 
+                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
                             } else {
-                                offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE, i * SQUARE_SIZE + TOP_OFFSET + stepMoved[i][j] * 60, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
+
+                                x_draw=j * SQUARE_SIZE + BORDER_SIZE ;
+                                y_draw = i * SQUARE_SIZE + TOP_OFFSET + stepMoved[i][j] * 60;
+
                             }
                         }
+
+                        Shape clip = new RoundRectangle2D.Float(x_draw, y_draw, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
+                        g2dTile.setClip(clip);
+                        g2dTile.drawImage(imageCollection[skin][index],x_draw, y_draw, SQUARE_SIZE, SQUARE_SIZE, null);
+                        g2dTile.dispose();
+
+
                     } else if (Arrays.deepEquals(oldBoard, board) && oldBoard[i][j] != 0) {
 
-
-                        int value = oldBoard[i][j];
-                        index = (int) (Math.log(value/3.0)/Math.log(2));
-                        offscreenGraphics.setColor(colors[index]);
-
-
-                        offscreenGraphics.fillRoundRect(j * SQUARE_SIZE + BORDER_SIZE, i * SQUARE_SIZE + TOP_OFFSET, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
-
+                        Shape clip = new RoundRectangle2D.Float(j * SQUARE_SIZE + BORDER_SIZE, i * SQUARE_SIZE + TOP_OFFSET, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
+                        g2dTile.setClip(clip);
+                        g2dTile.drawImage(imageCollection[skin][index],j * SQUARE_SIZE + BORDER_SIZE, i * SQUARE_SIZE + TOP_OFFSET, SQUARE_SIZE, SQUARE_SIZE, null);
+                        g2dTile.dispose();
 
                     }
                 }
             }
 
             g2D.drawImage(offscreenImage, 0, 0, this);
-
 
 
             //Back Button
@@ -1053,9 +1114,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.fillRect(170, 40, 80, 30); //current score
             g2D.fillRect(350, 40, 80, 30); //best score
 
-
-
-
             //Score texts
             g2D.setColor(Color.BLACK);
             g2D.setFont(new Font("Plain", Font.BOLD, 12));
@@ -1064,8 +1122,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.setFont(new Font("Plain", Font.BOLD, 16));
             g2D.drawString("12", 200, 60);
             g2D.drawString("12", 380, 60);
-
-
 
 
             g2D.setStroke(new BasicStroke(6));
@@ -1558,10 +1614,8 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
             long currentTime = System.currentTimeMillis();
 
-
             if (currentTime - lastInputTime >= cooldown) {
                 key = kp.getKeyCode();
-
 
                 if (key == KeyEvent.VK_RIGHT && !anti_double_animation) {
                     x = 4;
@@ -1621,15 +1675,12 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     repaint();
                 } else {
 
-
                     timer.stop();
                     XMove = 0;
                     YMove = 0;
 
                     copyBoard();
                     repaint();
-
-
                     merge();
                     if(didMove){
                         blockSpawning=true;
@@ -1723,6 +1774,9 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
 
     public static void main(String[] args) throws IOException{
+
+
+
         game = new JFrame("19683");
         Main panel = new Main();
         game.add(panel);
@@ -1743,7 +1797,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         music.start();
         //Loops background music forever
         music.loop(Clip.LOOP_CONTINUOUSLY);
-
 
         //Stops music when window closes
         game.addWindowListener(new java.awt.event.WindowAdapter() {
