@@ -23,6 +23,8 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     BufferedImage chongqing;
     BufferedImage newYork;
     BufferedImage seoul;
+    BufferedImage aiden;
+    BufferedImage will;
     static Clip music;
     Clip mergeEffect;
 
@@ -49,7 +51,10 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     Rectangle chongqingButton = new Rectangle(30, 220, 160, 200);
     Rectangle newYorkButton = new Rectangle(220, 220, 160, 200);
     Rectangle seoulButton = new Rectangle(410, 220, 160, 200);
-    Rectangle resetButton = new Rectangle (260, 515, 80, 40);
+    Rectangle backgroundResetButton = new Rectangle (260, 515, 80, 40);
+
+    Rectangle gameResetButton = new Rectangle(250, 506, 100, 40);
+
 
 
     int musicButton = 1;
@@ -64,6 +69,20 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
     //1: Home, 2: Game, 3-11: Tutorial, 12: Credits, 13: Settings, 14: Custom Backgrounds
     int pageSwitch = 1;
+    // tracks whether mouse is over the buttons
+    boolean isHoveringPlay = false;
+    boolean isHoveringTutorial = false;
+    boolean isHoveringCredits = false;
+    boolean isHoveringExit = false;
+    boolean isHoveringSettings = false;
+    boolean isHoveringMusic = false;
+    boolean isHoveringSFX = false;
+    boolean isHoveringBackgrounds = false;
+    boolean isHoveringReset = false;
+    boolean isHoveringBack = false;
+    boolean isHoveringNext = false;
+    boolean isHoveringHome = false;
+
 
     int[][] board = new int[5][5];
     int[][] oldBoard = new int[5][5];
@@ -139,9 +158,14 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
 
         setting_icon = Toolkit.getDefaultToolkit().getImage("Setting_Icon.png");
+        //backgrounds
         chongqing = ImageIO.read(new File("chongqingBackground.png"));
         newYork = ImageIO.read(new File("newYorkBackground.png"));
         seoul = ImageIO.read(new File("seoulBackground.png"));
+
+        //aiden and will's faces
+        aiden = ImageIO.read(new File("aiden.jpg"));
+        will = ImageIO.read(new File("will.jpg"));
 
 
         addMouseListener(this); //detects button clicks
@@ -487,78 +511,116 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.fillRoundRect(167, 110, 270, 110, 80, 80);
             g2D.setColor(Color.BLACK);
             g2D.setFont(new Font("Monospaced", Font.BOLD, 70));
-            g2D.drawString("19683", 195, 187);
+            g2D.drawString("3072", 215, 187);
             g2D.setStroke(new BasicStroke(6));
             g2D.drawRoundRect(167, 110, 270, 110, 80, 80);
 
 
-            //Play Button
             g2D.setStroke(new BasicStroke(4));
-            g2D.setColor(Color.BLACK);
-            g2D.drawRoundRect(playButton.x, playButton.y, playButton.width, playButton.height, 30, 30);
 
+            //Play Button
+            if (isHoveringPlay){
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(playButton.x-2, playButton.y-2, playButton.width+4, playButton.height+5, 30, 30);
+                g2D.setColor(new Color(238, 228, 218));
+                g2D.fillRoundRect(playButton.x-2, playButton.y-2, playButton.width+4, playButton.height+5, 30, 30);
 
-            g2D.setColor(new Color(238, 228, 218));
-            g2D.fillRoundRect(playButton.x, playButton.y, playButton.width, playButton.height, 30, 30);
+                //Play Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 28));
+                g2D.drawString("PLAY", 269, 324);
+            }
+            else{
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(playButton.x, playButton.y, playButton.width, playButton.height, 30, 30);
+                g2D.setColor(new Color(238, 228, 218));
+                g2D.fillRoundRect(playButton.x, playButton.y, playButton.width, playButton.height, 30, 30);
+
+                //Play Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
+                g2D.drawString("PLAY", 273, 322);
+            }
 
 
             //Tutorial Button
-            g2D.setColor(Color.BLACK);
-            g2D.drawRoundRect(tutorialButton.x, tutorialButton.y, tutorialButton.width, tutorialButton.height, 30, 30);
+            if (isHoveringTutorial) {
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(tutorialButton.x-2, tutorialButton.y-2, tutorialButton.width+4, tutorialButton.height+5, 30, 30);
+                g2D.setColor(new Color(237, 224, 200));
+                g2D.fillRoundRect(tutorialButton.x-2, tutorialButton.y-2, tutorialButton.width+4, tutorialButton.height+5, 30, 30);
 
+                //Tutorial Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 28));
+                g2D.drawString("TUTORIAL", 236, 384);
+            }
+            else {
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(tutorialButton.x, tutorialButton.y, tutorialButton.width, tutorialButton.height, 30, 30);
+                g2D.setColor(new Color(237, 224, 200));
+                g2D.fillRoundRect(tutorialButton.x, tutorialButton.y, tutorialButton.width, tutorialButton.height, 30, 30);
 
-            g2D.setColor(new Color(237, 224, 200));
-            g2D.fillRoundRect(tutorialButton.x, tutorialButton.y, tutorialButton.width, tutorialButton.height, 30, 30);
-
+                //Tutorial Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
+                g2D.drawString("TUTORIAL", 246, 382);
+            }
 
             //Credits Button
-            g2D.setColor(Color.BLACK);
-            g2D.drawRoundRect(creditsButton.x, creditsButton.y, creditsButton.width, creditsButton.height, 30, 30);
+            if (isHoveringCredits){
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(creditsButton.x-2, creditsButton.y-2, creditsButton.width+4, creditsButton.height+5, 30, 30);
+                g2D.setColor(new Color(227, 197, 148));
+                g2D.fillRoundRect(creditsButton.x-2, creditsButton.y-2, creditsButton.width+4, creditsButton.height+5, 30, 30);
 
+                //Credits Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 28));
+                g2D.drawString("CREDITS", 243, 443);
+            }
+            else {
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(creditsButton.x, creditsButton.y, creditsButton.width, creditsButton.height, 30, 30);
+                g2D.setColor(new Color(227, 197, 148));
+                g2D.fillRoundRect(creditsButton.x, creditsButton.y, creditsButton.width, creditsButton.height, 30, 30);
 
-            g2D.setColor(new Color(227, 197, 148));
-            g2D.fillRoundRect(creditsButton.x, creditsButton.y, creditsButton.width, creditsButton.height, 30, 30);
-
+                //Credits Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
+                g2D.drawString("CREDITS", 253, 442);
+            }
 
             //Exit Button
-            g2D.setColor(Color.BLACK);
-            g2D.drawRoundRect(exitButton.x, exitButton.y, exitButton.width, exitButton.height, 30, 30);
 
+            if(isHoveringExit) {
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(exitButton.x-2, exitButton.y-2, exitButton.width+4, exitButton.height+5, 30, 30);
+                g2D.setColor(new Color(236, 188, 109));
+                g2D.fillRoundRect(exitButton.x-2, exitButton.y-2, exitButton.width+4, exitButton.height+5, 30, 30);
 
-            g2D.setColor(new Color(236, 188, 109));
-            g2D.fillRoundRect(exitButton.x, exitButton.y, exitButton.width, exitButton.height, 30, 30);
+                //Exit Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 28));
+                g2D.drawString("EXIT", 268, 504);
+            }
 
+            else{
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(exitButton.x, exitButton.y, exitButton.width, exitButton.height, 30, 30);
+                g2D.setColor(new Color(236, 188, 109));
+                g2D.fillRoundRect(exitButton.x, exitButton.y, exitButton.width, exitButton.height, 30, 30);
 
-            //Play Button Text
-            g2D.setColor(Color.BLACK);
-            g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
-            g2D.drawString("PLAY", 273, 322);
-
-
-            //Tutorial Button Text
-            g2D.setColor(Color.BLACK);
-            g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
-            g2D.drawString("TUTORIAL", 248, 382);
-
-
-            //Credits Button Text
-            g2D.setColor(Color.BLACK);
-            g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
-            g2D.drawString("CREDITS", 253, 442);
-
-
-            //Exit Button Text
-            g2D.setColor(Color.BLACK);
-            g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
-            g2D.drawString("EXIT", 273, 502);
-
+                //Exit Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
+                g2D.drawString("EXIT", 273, 502);
+            }
 
             //Settings Icon
             g2D.drawImage(setting_icon, settingsButton.x, settingsButton.y, settingsButton.width, settingsButton.height, this);
         }
         else if (pageSwitch == 2){
-
-
 
 
             if (offscreenGraphics == null) {
@@ -571,7 +633,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
             //changes the background of game page
             if (backgroundChange == 1) {
-                setBackground(new Color(237, 225, 200));
+                setBackground(new Color(232, 215, 197));
             }
             else if (backgroundChange == 2){
                 offscreenGraphics.drawImage(chongqing, 0, 0, getWidth(), getHeight(), this); //sets image as background and scales it
@@ -694,10 +756,42 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.setStroke(new BasicStroke(2));
             g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
 
-
             g2D.setColor(new Color(239, 211, 204));
             g2D.drawString("BACK", 10, 27);
 
+            //Game reset button
+            g2D.setColor(new Color(152, 108, 93));
+            g2D.fillRoundRect(gameResetButton.x, gameResetButton.y, gameResetButton.width, gameResetButton.height, 30, 30);
+            g2D.setColor(new Color(255, 219, 219));
+            g2D.setStroke(new BasicStroke(3));
+            g2D.drawRoundRect(gameResetButton.x, gameResetButton.y, gameResetButton.width, gameResetButton.height, 30, 30);
+
+            g2D.setColor(new Color(250, 190, 177));
+            g2D.drawString("RESET", 269, 532);
+
+            //Current score & Best score
+            g2D.setStroke(new BasicStroke(3));
+            g2D.setColor(Color.BLACK);
+            g2D.drawRect(170, 55, 80, 30); //current score
+            g2D.drawRect(350, 55, 80, 30); //best score
+            g2D.setColor(new Color(230, 144, 123));
+            g2D.fillRect(170, 55, 80, 30); //current score
+            g2D.fillRect(350, 55, 80, 30); //best score
+
+            g2D.setColor(Color.BLACK);
+            g2D.drawRect(165, 25, 89, 19); //current score
+            g2D.drawRect(350, 25, 80, 19); //best score
+            g2D.setColor(new Color(228, 186, 174));
+            g2D.fillRect(165, 25, 89, 19);
+            g2D.fillRect(350, 25, 80, 19);
+
+
+
+            //Score texts
+            g2D.setColor(Color.BLACK);
+            g2D.setFont(new Font("Plain", Font.BOLD, 12));
+            g2D.drawString("Current Score", 169, 38);
+            g2D.drawString("Best Score", 358, 38);
         }
 
 
@@ -1038,26 +1132,27 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             //Current score & Best score
             g2D.setStroke(new BasicStroke(3));
             g2D.setColor(Color.BLACK);
-            g2D.drawRect(170, 40, 80, 30); //current score
-            g2D.drawRect(350, 40, 80, 30); //best score
+            g2D.drawRect(170, 55, 80, 30); //current score
+            g2D.drawRect(350, 55, 80, 30); //best score
             g2D.setColor(new Color(230, 144, 123));
-            g2D.fillRect(170, 40, 80, 30); //current score
-            g2D.fillRect(350, 40, 80, 30); //best score
+            g2D.fillRect(170, 55, 80, 30); //current score
+            g2D.fillRect(350, 55, 80, 30); //best score
 
-
-
+            g2D.setColor(Color.BLACK);
+            g2D.drawRect(165, 25, 89, 19); //current score
+            g2D.drawRect(350, 25, 80, 19); //best score
+            g2D.setColor(new Color(228, 186, 174));
+            g2D.fillRect(165, 25, 89, 19);
+            g2D.fillRect(350, 25, 80, 19);
 
             //Score texts
             g2D.setColor(Color.BLACK);
             g2D.setFont(new Font("Plain", Font.BOLD, 12));
-            g2D.drawString("Current Score", 169, 30);
-            g2D.drawString("Best Score", 358, 30);
+            g2D.drawString("Current Score", 169, 38);
+            g2D.drawString("Best Score", 358, 38);
             g2D.setFont(new Font("Plain", Font.BOLD, 16));
-            g2D.drawString("12", 200, 60);
-            g2D.drawString("12", 380, 60);
-
-
-
+            g2D.drawString("12", 200, 75);
+            g2D.drawString("12", 380, 75);
 
             g2D.setStroke(new BasicStroke(6));
             g2D.setFont(new Font("Plain", Font.BOLD, 18));
@@ -1104,14 +1199,13 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
             g2D.setFont(new Font("Plain", Font.BOLD, 18));
             g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("Create a block of 19683 to win!!!", 158, 140);
+            g2D.drawString("Create a block of 3072 to win!!!", 162, 140);
 
 
             //Home Button
             g2D.drawRoundRect(tutorialHome.x, tutorialHome.y, tutorialHome.width, tutorialHome.height, 30, 30);
             g2D.setColor(new Color(152, 108, 93));
             g2D.fillRoundRect(tutorialHome.x, tutorialHome.y, tutorialHome.width, tutorialHome.height, 30, 30);
-
 
             g2D.setColor(new Color(255, 166, 143));
             g2D.drawString("HOME", 271, 566);
@@ -1141,11 +1235,16 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
 
             g2D.setFont(new Font("Plain", Font.BOLD, 20));
-            g2D.drawString("Will", 150, 500);
-            g2D.drawString("Aiden", 400, 500);
+            g2D.drawString("Will", 142, 500);
+            g2D.drawString("Aiden", 405, 500);
+            //our faces
+            g2D.drawImage(aiden, 315, 150, 250, 300, this);
+            g2D.drawImage(will, 35, 150, 250, 300, this);
+            //face picture borders
+            g2D.setStroke(new BasicStroke(4));
+            g2D.drawRect(315, 150, 250, 300);
+            g2D.drawRect(35, 150, 250, 300);
 
-
-            //add image of ourselves maybe
 
 
             //Back Button
@@ -1324,10 +1423,10 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
             //Reset Button
             g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(resetButton.x, resetButton.y, resetButton.width, resetButton.height, 25, 25);
+            g2D.fillRoundRect(backgroundResetButton.x, backgroundResetButton.y, backgroundResetButton.width, backgroundResetButton.height, 25, 25);
             g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(resetButton.x, resetButton.y, resetButton.width, resetButton.height, 25, 25);
+            g2D.drawRoundRect(backgroundResetButton.x, backgroundResetButton.y, backgroundResetButton.width, backgroundResetButton.height, 25, 25);
 
 
             g2D.setColor(new Color(239, 211, 204));
@@ -1389,6 +1488,9 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             if (backButton.contains(clicked)) {
                 pageSwitch = 1;
                 repaint();
+            }
+            else if (gameResetButton.contains(clicked)){
+                System.out.println("RESET THE BOARD");
             }
         }
 
@@ -1482,7 +1584,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             }
         }
 
-
+        //Setting page buttons
         else if (pageSwitch == 13) {
             if (backButton.contains(clicked)) {
                 pageSwitch = 1;
@@ -1512,6 +1614,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 repaint();
             }
         }
+        //Backgrounds page
         else if (pageSwitch == 14){
             if (backButton.contains(clicked)) {
                 pageSwitch = 13;
@@ -1529,7 +1632,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 backgroundChange = 4;
                 repaint();
             }
-            else if (resetButton.contains(clicked)){
+            else if (backgroundResetButton.contains(clicked)){
                 backgroundChange = 1;
                 repaint();
             }
@@ -1561,6 +1664,204 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
 
     public void mouseMoved(MouseEvent e) {
+        int mouseX = e.getX();
+        int mouseY = e.getY();
+
+        // Checks if mouse is inside the button
+        //Play
+        if (playButton.contains(mouseX, mouseY)) {
+            isHoveringPlay = true;
+            repaint();
+        } else {
+            isHoveringPlay = false;
+            repaint();
+        }
+        //Tutorial
+        if (tutorialButton.contains(mouseX, mouseY)) {
+            isHoveringTutorial = true;
+            repaint();
+        } else {
+            isHoveringTutorial = false;
+            repaint();
+        }
+
+        //Credits
+        if (creditsButton.contains(mouseX, mouseY)) {
+            isHoveringCredits = true;
+            repaint();
+        } else {
+            isHoveringCredits = false;
+            repaint();
+        }
+//        //Settings
+//        if (pageSwitch == 1) {
+//            if (settingsButton.contains(clicked)) {
+//                pageSwitch = 13;
+//                repaint();
+//            }
+//        }
+        //Exit
+        if (exitButton.contains(mouseX, mouseY)) {
+            isHoveringExit = true;
+            repaint();
+        } else {
+            isHoveringExit = false;
+            repaint();
+        }
+//        //Game
+//        else if (pageSwitch == 2) {
+//            if (backButton.contains(clicked)) {
+//                pageSwitch = 1;
+//                repaint();
+//            }
+//            else if (gameResetButton.contains(clicked)){
+//                System.out.println("RESET THE BOARD");
+//            }
+//        }
+//
+//
+//        //Tutorial Buttons
+//        else if (pageSwitch == 3) {
+//            if (tutorialNext.contains(clicked)) {
+//                pageSwitch = 4;
+//                repaint();
+//            }
+//            if (backButton.contains(clicked)) {
+//                pageSwitch = 1;
+//                repaint();
+//            }
+//        } else if (pageSwitch == 4) {
+//            if (tutorialNext.contains(clicked)) {
+//                pageSwitch = 5;
+//                repaint();
+//            }
+//            if (backButton.contains(clicked)) {
+//                pageSwitch = 3;
+//                repaint();
+//            }
+//        } else if (pageSwitch == 5) {
+//            if (tutorialNext.contains(clicked)) {
+//                pageSwitch = 6;
+//                repaint();
+//            }
+//            if (backButton.contains(clicked)) {
+//                pageSwitch = 4;
+//                repaint();
+//            }
+//        } else if (pageSwitch == 6) {
+//            if (tutorialNext.contains(clicked)) {
+//                pageSwitch = 7;
+//                repaint();
+//            }
+//            if (backButton.contains(clicked)) {
+//                pageSwitch = 5;
+//                repaint();
+//            }
+//        } else if (pageSwitch == 7) {
+//            if (tutorialNext.contains(clicked)) {
+//                pageSwitch = 8;
+//                repaint();
+//            }
+//            if (backButton.contains(clicked)) {
+//                pageSwitch = 6;
+//                repaint();
+//            }
+//        } else if (pageSwitch == 8) {
+//            if (tutorialNext.contains(clicked)) {
+//                pageSwitch = 9;
+//                repaint();
+//            }
+//            if (backButton.contains(clicked)) {
+//                pageSwitch = 7;
+//                repaint();
+//            }
+//        } else if (pageSwitch == 9) {
+//            if (tutorialNext.contains(clicked)) {
+//                pageSwitch = 10;
+//                repaint();
+//            }
+//            if (backButton.contains(clicked)) {
+//                pageSwitch = 8;
+//                repaint();
+//            }
+//        } else if (pageSwitch == 10) {
+//            if (tutorialNext.contains(clicked)) {
+//                pageSwitch = 11;
+//                repaint();
+//            }
+//            if (backButton.contains(clicked)) {
+//                pageSwitch = 9;
+//                repaint();
+//            }
+//        } else if (pageSwitch == 11) {
+//            if (backButton.contains(clicked)) {
+//                pageSwitch = 10;
+//                repaint();
+//            }
+//            if (tutorialHome.contains(clicked)) {
+//                pageSwitch = 1;
+//                repaint();
+//            }
+//        } else if (pageSwitch == 12) {
+//            if (backButton.contains(clicked)) {
+//                pageSwitch = 1;
+//                repaint();
+//            }
+//        }
+//
+//        //Setting page buttons
+//        else if (pageSwitch == 13) {
+//            if (backButton.contains(clicked)) {
+//                pageSwitch = 1;
+//                repaint();
+//            } else if (musicOn.contains(clicked)) {
+//                if (musicButton == 1) {
+//                    musicButton = -1;
+//                    music.stop();
+//                    repaint();
+//                }
+//                else if (musicButton == -1) {
+//                    musicButton = 1;
+//                    music.start();
+//                    music.loop(Clip.LOOP_CONTINUOUSLY);
+//                    repaint();
+//                }
+//            } else if (SFXOn.contains(clicked)) {
+//                if (SFXButton == 1) {
+//                    SFXButton = -1;
+//                    repaint();
+//                } else if (SFXButton == -1) {
+//                    SFXButton = 1;
+//                    repaint();
+//                }
+//            } else if (backgroundButton.contains(clicked)){
+//                pageSwitch = 14;
+//                repaint();
+//            }
+//        }
+//        //Backgrounds page
+//        else if (pageSwitch == 14){
+//            if (backButton.contains(clicked)) {
+//                pageSwitch = 13;
+//                repaint();
+//            }
+//            else if (chongqingButton.contains(clicked)){
+//                backgroundChange = 2;
+//                repaint();
+//            }
+//            else if (newYorkButton.contains(clicked)){
+//                backgroundChange = 3;
+//                repaint();
+//            }
+//            else if (seoulButton.contains(clicked)){
+//                backgroundChange = 4;
+//                repaint();
+//            }
+//            else if (backgroundResetButton.contains(clicked)){
+//                backgroundChange = 1;
+//                repaint();
+//            }
+//        }
     }
 
 
@@ -1620,9 +1921,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             blockSpawning=true;
             didMove=true;
         }
-
-
-
 
         timer = new Timer(3, new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1728,7 +2026,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     public void keyReleased(KeyEvent e) {
     }
 
-
     public void keyTyped(KeyEvent e) {
     }
 
@@ -1736,7 +2033,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
 
     public static void main(String[] args) throws IOException{
-        game = new JFrame("19683");
+        game = new JFrame("3072");
         Main panel = new Main();
         game.add(panel);
         game.pack();
