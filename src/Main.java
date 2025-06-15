@@ -159,7 +159,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         oldBoard[starterBlock2_Y][starterBlock2_X] = 3;
         oldBoard[starterBlock3_Y][starterBlock3_X] = 3;
 
-
         int start = 3;
 
         for(int x = 0; x<11; x++){
@@ -168,7 +167,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         }
 
         try {
-
             images_Color[0] = ImageIO.read(new File("red.png"));
             images_Color[1] = ImageIO.read(new File("blue.png"));
             images_Color[2] = ImageIO.read(new File("cyan.png"));
@@ -180,6 +178,23 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             images_Color[8] = ImageIO.read(new File("purple.png"));
             images_Color[9] = ImageIO.read(new File("yellow.png"));
             images_Color[10] = ImageIO.read(new File("black.png"));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            images_fruit[0] = ImageIO.read(new File("blueberry.jpg"));
+            images_fruit[1] = ImageIO.read(new File("grape.jpg"));
+            images_fruit[2] = ImageIO.read(new File("strawberry.jpg"));
+            images_fruit[3] = ImageIO.read(new File("kiwi.jpg"));
+            images_fruit[4] = ImageIO.read(new File("banana.jpg"));
+            images_fruit[5] = ImageIO.read(new File("peach.jpg"));
+            images_fruit[6] = ImageIO.read(new File("mango.jpg"));
+            images_fruit[7] = ImageIO.read(new File("orange.jpg"));
+            images_fruit[8] = ImageIO.read(new File("dragonfruit.jpg"));
+            images_fruit[9] = ImageIO.read(new File("pineapple.jpg"));
+            images_fruit[10] = ImageIO.read(new File("watermelon.jpg"));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -461,14 +476,21 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     }
 
     public int checkWinner() {
+
+        boolean isEmpty = false;
+
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
-                if (board[i][j] == 3072) {
+                if (board[i][j] == 24) {
                     return 1;
                 }else if(board[i][j]==0){
-                    return 2;
+                    isEmpty=true;
                 }
             }
+        }
+
+        if(isEmpty){
+            return 2;
         }
         return 3;
     }
@@ -511,6 +533,26 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         oldBoard[starterBlock2_Y][starterBlock2_X] = 3;
         oldBoard[starterBlock3_Y][starterBlock3_X] = 3;
 
+        score=0;
+        repaint();
+    }
+
+    public void fillBoardNoMerges() {
+        int[][] values = {
+                {3, 6, 12, 3, 6},
+                {6, 12, 3, 6, 12},
+                {12, 3, 6, 12, 3},
+                {3, 6, 12, 3, 6},
+                {6, 12, 3, 6, 12}
+        };
+
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                board[i][j] = values[i][j];
+            }
+        }
+
+        copyBoard();
         repaint();
     }
 
@@ -650,7 +692,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
                     //this variable will be used to decide which skin the user is choosing
                     //might also need to make this global to change the graphics around
-                    int skin = 0;
+                    int skin = 2;
 
 
                     int value = oldBoard[i][j];
@@ -1692,7 +1734,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
 
 
-
         timer = new Timer(3, new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
 
@@ -1780,8 +1821,18 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     copyBoard();
                     repaint();
 
+//                  YOU CAN uncomment and call this method to test the lose page!
+//                  since it will take some time to fill the board
+//                  fillBoardNoMerges();
 
-//                  checkWinner();
+                   if(checkWinner()==1){
+                       System.out.println("winnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn");
+                   }else if(checkWinner()==2){
+                       System.out.println("continueeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+                   }else{
+                       System.out.println("loseeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+                   }
+
                 }
             }
         });
