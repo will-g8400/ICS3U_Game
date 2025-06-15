@@ -1,8 +1,8 @@
 
 //bunch of imports for all the stuff we have used
+
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.*;
 import java.awt.*;
 import javax.sound.sampled.*;
 import javax.swing.*;
@@ -26,6 +26,8 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     BufferedImage chongqing;
     BufferedImage newYork;
     BufferedImage seoul;
+    BufferedImage aiden;
+    BufferedImage will;
 
     //the variables defined to use music to play background sound and our merge SFX
     static Clip music;
@@ -45,13 +47,13 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     Rectangle musicOn = new Rectangle(300, 165, 80, 50);
     Rectangle SFXOn = new Rectangle(300, 295, 80, 50);
 
-    Rectangle backgroundButton = new Rectangle(140,410,300,80);
+    Rectangle backgroundButton = new Rectangle(140, 410, 300, 80);
 
     Rectangle chongqingButton = new Rectangle(30, 220, 160, 200);
     Rectangle newYorkButton = new Rectangle(220, 220, 160, 200);
     Rectangle seoulButton = new Rectangle(410, 220, 160, 200);
-    Rectangle resetButton = new Rectangle (260, 515, 80, 40);
-    Rectangle resetBoardButton = new Rectangle (20,500,100,40);
+    Rectangle resetButton = new Rectangle(260, 515, 80, 40);
+    Rectangle resetBoardButton = new Rectangle(250, 506, 100, 40);
 
     int musicButton = 1;
     int SFXButton = 1;
@@ -61,7 +63,22 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     static JFrame game;
 
     //1: Home, 2: Game, 3-11: Tutorial, 12: Credits, 13: Settings, 14: Custom Backgrounds
-    int pageSwitch = 1;
+    int pageSwitch = 1; //every screen has a unique integer value of pageSwitch, which lets the program know what screen to draw
+    // tracks whether mouse is over the buttons
+    //each button has their own boolean because if not, then hovering one button would make program think the other buttons are hovering as well
+
+    boolean isHoveringPlay = false;
+    boolean isHoveringTutorial = false;
+    boolean isHoveringCredits = false;
+    boolean isHoveringExit = false;
+    boolean isHoveringSettings = false;
+    boolean isHoveringMusic = false;
+    boolean isHoveringSFX = false;
+    boolean isHoveringBackgrounds = false;
+    boolean isHoveringReset = false;
+    boolean isHoveringBack = false;
+    boolean isHoveringNext = false;
+    boolean isHoveringHome = false;
 
     //board used to keep track of current board state
     int[][] board = new int[5][5];
@@ -76,11 +93,11 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     int[][] mergeStepMoved = new int[5][5];
 
     //stores the skin set for our board pieces
-    BufferedImage [] images_Number = new BufferedImage[11];
-    BufferedImage [] images_Color = new BufferedImage[11];
-    BufferedImage [] images_fruit = new BufferedImage[11];
+    BufferedImage[] images_Number = new BufferedImage[11];
+    BufferedImage[] images_Color = new BufferedImage[11];
+    BufferedImage[] images_fruit = new BufferedImage[11];
 
-    BufferedImage [][] imageCollection = {images_Number,images_Color,images_fruit};
+    BufferedImage[][] imageCollection = {images_Number, images_Color, images_fruit};
 
     //you win and you lose images
     Image you_win = new ImageIcon("you_win.png").getImage();
@@ -93,7 +110,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
     //self explanatory enough
     static int score = 0;
-    static int highScore = 0 ;
+    static int highScore = 0;
 
     // x,y, xMove, and Ymove are used for animation of the blocks
     int x = 0;
@@ -131,10 +148,10 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     boolean anti_double_animation = false;
 
     //this variable is responsible for checking if a block can spawn on the board
-    boolean blockSpawning=true;
+    boolean blockSpawning = true;
 
     //did move checks if the board actually changed or not
-    boolean didMove=false;
+    boolean didMove = false;
 
     //these two check whether or not to show the lost or winner screen
     boolean winner = false;
@@ -149,7 +166,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
 
     //constructor --> initial set up
-    public Main() throws IOException{
+    public Main() throws IOException {
         //set the size
         setPreferredSize(new Dimension(600, 600));
         setBackground(new Color(222, 207, 189));
@@ -160,11 +177,15 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         newYork = ImageIO.read(new File("newYorkBackground.png"));
         seoul = ImageIO.read(new File("seoulBackground.png"));
 
+        //aiden and will's faces
+        aiden = ImageIO.read(new File("aiden.jpg"));
+        will = ImageIO.read(new File("will.jpg"));
+
         int start = 3;
 
-        for(int x = 0; x<11; x++){
-            images_Number[x] = ImageIO.read(new File(start+".png"));
-            start*=2;
+        for (int x = 0; x < 11; x++) {
+            images_Number[x] = ImageIO.read(new File(start + ".png"));
+            start *= 2;
         }
 
         try {
@@ -201,7 +222,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             e.printStackTrace();
         }
 
-        //add all the listeners that can help detecto button clicks and key clicks
+        //add all the listeners that can help detect button clicks and key clicks
         addMouseListener(this); //detects button clicks
         addMouseMotionListener(this);
         addKeyListener(this);
@@ -273,7 +294,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     }
                 }
             }
-        //left
+            //left
         } else if (directionX < 0) {
 
             for (int checkAll = 1; checkAll <= 5; checkAll++) {
@@ -287,7 +308,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 }
             }
 
-        //down
+            //down
         } else if (directionY > 0) {
 
             for (int checkAll = 1; checkAll <= 5; checkAll++) {
@@ -302,7 +323,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 }
             }
 
-        //up
+            //up
         } else if (directionY < 0) {
 
             for (int checkAll = 1; checkAll <= 5; checkAll++) {
@@ -329,7 +350,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         int randomblockX = (int) (Math.random() * 5);
         int randomblockY = (int) (Math.random() * 5);
 
-        for(int i=0; i< 5; i++) {
+        for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
 
                 //first i will check that a empty spot, does exist
@@ -354,9 +375,9 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     public void how_many_steps_moved() {
 
         //to reset the stepMoved 2D array to prevent remnants from messing things up
-        for(int i = 0; i<5; i++){
-            for(int j = 0; j<5; j++){
-                stepMoved[i][j]=0;
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                stepMoved[i][j] = 0;
             }
         }
 
@@ -376,7 +397,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 }
             }
 
-        //left
+            //left
         } else if (x < 0 && y == 0) {
             for (int i = 0; i < 5; i++) {
                 leftTracker = 0;
@@ -388,7 +409,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 }
             }
 
-        //down
+            //down
         } else if (y > 0 && x == 0) {
             for (int i = 0; i < 5; i++) {
                 downTracker = 4;
@@ -399,7 +420,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     }
                 }
             }
-        //up
+            //up
         } else if (y < 0 && x == 0) {
             for (int i = 0; i < 5; i++) {
                 upTracker = 0;
@@ -453,13 +474,13 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     public void merge() {
 
         //this is used to play the sound effect if merging occurs
-        int merge_count_SFX=0;
+        int merge_count_SFX = 0;
 
         //we reset this mergeStepdMoved though, which is used to keep track of which block
         //needs to be merged and helps with the merging animation
-        for(int i =0; i<5; i++){
-            for(int j = 0; j<5; j++){
-                mergeStepMoved[i][j]=0;
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                mergeStepMoved[i][j] = 0;
             }
         }
 
@@ -475,7 +496,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
                         //i also do add the updated board piece to the score board
                         //and do that for the rest of the direction as well
-                        score+=board[row][col];
+                        score += board[row][col];
 
                         board[row][col - 1] = 0;
                         mergeStepMoved[row][col - 1] = 1;
@@ -487,13 +508,13 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 }
             }
 
-        //left
+            //left
         } else if (x < 0 && y == 0) {
             for (int row = 0; row < 5; row++) {
                 for (int col = 0; col < 4; col++) {
                     if (board[row][col] != 0 && board[row][col] == board[row][col + 1]) {
                         board[row][col] *= 2;
-                        score+=board[row][col];
+                        score += board[row][col];
                         board[row][col + 1] = 0;
                         mergeStepMoved[row][col + 1] = -1;
                         merge_count_SFX++;
@@ -502,26 +523,26 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             }
 
 
-        //down
+            //down
         } else if (x == 0 && y > 0) {
             for (int col = 0; col < 5; col++) {
                 for (int row = 4; row > 0; row--) {
                     if (board[row][col] != 0 && board[row][col] == board[row - 1][col]) {
                         board[row][col] *= 2;
-                        score+=board[row][col];
+                        score += board[row][col];
                         board[row - 1][col] = 0;
                         mergeStepMoved[row - 1][col] = 1;
                         merge_count_SFX++;
                     }
                 }
             }
-        //up
+            //up
         } else if (x == 0 && y < 0) {
             for (int col = 0; col < 5; col++) {
                 for (int row = 0; row < 4; row++) {
                     if (board[row][col] != 0 && board[row][col] == board[row + 1][col]) {
                         board[row][col] *= 2;
-                        score+=board[row][col];
+                        score += board[row][col];
                         board[row + 1][col] = 0;
                         mergeStepMoved[row + 1][col] = -1;
                         merge_count_SFX++;
@@ -531,22 +552,21 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         }
 
         //here is where we play the audio if merge does happen
-        if(merge_count_SFX>0){
+        if (merge_count_SFX > 0) {
             try {
-                AudioInputStream mergeEffectSound = AudioSystem.getAudioInputStream(new File ("mergeEffect.wav"));
+                AudioInputStream mergeEffectSound = AudioSystem.getAudioInputStream(new File("mergeEffect.wav"));
                 mergeEffect = AudioSystem.getClip();
                 mergeEffect.open(mergeEffectSound);
-            }
-            catch (Exception  e) {
+            } catch (Exception e) {
             }
             if (SFXButton == 1) {
                 mergeEffect.start();
             }
 
-        //i also update my highscore here if the score is higher than the high score
-        if(score>highScore){
-            highScore=score;
-        }
+            //i also update my highscore here if the score is higher than the high score
+            if (score > highScore) {
+                highScore = score;
+            }
 
         }
 
@@ -567,14 +587,14 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 //we loop through the board to see if it has the winning block
                 if (board[i][j] == 3072) {
                     return 1;
-                //or has empty space
-                }else if(board[i][j]==0){
-                    isEmpty=true;
+                    //or has empty space
+                } else if (board[i][j] == 0) {
+                    isEmpty = true;
                 }
             }
         }
 
-        if(isEmpty){
+        if (isEmpty) {
             return 2;
         }
 
@@ -586,13 +606,13 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     //description: this method reset the board and sets it up for a new game
     //parameter: nothing
     //return: nothing
-    public void resetBoard(){
+    public void resetBoard() {
 
         //resets the board here by making everything 0
-        for(int i = 0; i<5; i++){
-            for(int j = 0 ; j<5; j++){
-                board[i][j]=0;
-                oldBoard[i][j]=0;
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                board[i][j] = 0;
+                oldBoard[i][j] = 0;
             }
         }
 
@@ -627,9 +647,10 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         oldBoard[starterBlock3_Y][starterBlock3_X] = 3;
 
         //reset the score to 0 as well then repaint
-        score=0;
+        score = 0;
         repaint();
     }
+
     //description: this method helps you check for what happens when you lose
     //parameter: nothing
     //return: nothing
@@ -654,10 +675,10 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         repaint();
     }
 
+    //Description: This method is responsible for drawing all the screens and its components
+    //Parameters: The graphics object g2D that allows drawing
+    //Return: Nothing
     public void drawnPages(Graphics2D g2D) {
-        System.out.println("drawnpages " + pageSwitch);
-        System.out.println("music button " + musicButton);
-        System.out.println("SFX button " + SFXButton);
 
         if (pageSwitch == 1) {
             setBackground(new Color(222, 207, 189));
@@ -666,76 +687,127 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.fillRoundRect(167, 110, 270, 110, 80, 80);
             g2D.setColor(Color.BLACK);
             g2D.setFont(new Font("Monospaced", Font.BOLD, 70));
-            g2D.drawString("2073", 210, 187);
+            g2D.drawString("3072", 215, 187);
             g2D.setStroke(new BasicStroke(6));
             g2D.drawRoundRect(167, 110, 270, 110, 80, 80);
 
+            g2D.setStroke(new BasicStroke(4));
 
             //Play Button
-            g2D.setStroke(new BasicStroke(4));
-            g2D.setColor(Color.BLACK);
-            g2D.drawRoundRect(playButton.x, playButton.y, playButton.width, playButton.height, 30, 30);
+            //If the cursor is on the play button, it will draw an expanded version of the button to make it pop out
+            //This mechanism is the same for all buttons
+            //We made sure that each button's specific font size was put in each if statement so hovering over one button wouldn't change the font size of another button on the same screen
+            if (isHoveringPlay) {
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(playButton.x - 2, playButton.y - 2, playButton.width + 4, playButton.height + 5, 30, 30);
+                g2D.setColor(new Color(238, 228, 218));
+                g2D.fillRoundRect(playButton.x - 2, playButton.y - 2, playButton.width + 4, playButton.height + 5, 30, 30);
 
 
-            g2D.setColor(new Color(238, 228, 218));
-            g2D.fillRoundRect(playButton.x, playButton.y, playButton.width, playButton.height, 30, 30);
+                //Play Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 28));
+                g2D.drawString("PLAY", 269, 324);
+            }
+            //If the cursor is NOT on the play button, it will draw the standard version of the button
+            //This mechanism is also the same for all buttons
+            else {
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(playButton.x, playButton.y, playButton.width, playButton.height, 30, 30);
+                g2D.setColor(new Color(238, 228, 218));
+                g2D.fillRoundRect(playButton.x, playButton.y, playButton.width, playButton.height, 30, 30);
+
+
+                //Play Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
+                g2D.drawString("PLAY", 273, 322);
+            }
 
 
             //Tutorial Button
-            g2D.setColor(Color.BLACK);
-            g2D.drawRoundRect(tutorialButton.x, tutorialButton.y, tutorialButton.width, tutorialButton.height, 30, 30);
+            if (isHoveringTutorial) {
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(tutorialButton.x - 2, tutorialButton.y - 2, tutorialButton.width + 4, tutorialButton.height + 5, 30, 30);
+                g2D.setColor(new Color(237, 224, 200));
+                g2D.fillRoundRect(tutorialButton.x - 2, tutorialButton.y - 2, tutorialButton.width + 4, tutorialButton.height + 5, 30, 30);
 
+                //Tutorial Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 28));
+                g2D.drawString("TUTORIAL", 236, 384);
+            } else {
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(tutorialButton.x, tutorialButton.y, tutorialButton.width, tutorialButton.height, 30, 30);
+                g2D.setColor(new Color(237, 224, 200));
+                g2D.fillRoundRect(tutorialButton.x, tutorialButton.y, tutorialButton.width, tutorialButton.height, 30, 30);
 
-            g2D.setColor(new Color(237, 224, 200));
-            g2D.fillRoundRect(tutorialButton.x, tutorialButton.y, tutorialButton.width, tutorialButton.height, 30, 30);
+                //Tutorial Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
+                g2D.drawString("TUTORIAL", 246, 382);
+            }
 
 
             //Credits Button
-            g2D.setColor(Color.BLACK);
-            g2D.drawRoundRect(creditsButton.x, creditsButton.y, creditsButton.width, creditsButton.height, 30, 30);
+            if (isHoveringCredits) {
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(creditsButton.x - 2, creditsButton.y - 2, creditsButton.width + 4, creditsButton.height + 5, 30, 30);
+                g2D.setColor(new Color(227, 197, 148));
+                g2D.fillRoundRect(creditsButton.x - 2, creditsButton.y - 2, creditsButton.width + 4, creditsButton.height + 5, 30, 30);
 
+                //Credits Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 28));
+                g2D.drawString("CREDITS", 243, 443);
+            } else {
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(creditsButton.x, creditsButton.y, creditsButton.width, creditsButton.height, 30, 30);
+                g2D.setColor(new Color(227, 197, 148));
+                g2D.fillRoundRect(creditsButton.x, creditsButton.y, creditsButton.width, creditsButton.height, 30, 30);
 
-            g2D.setColor(new Color(227, 197, 148));
-            g2D.fillRoundRect(creditsButton.x, creditsButton.y, creditsButton.width, creditsButton.height, 30, 30);
+                //Credits Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
+                g2D.drawString("CREDITS", 253, 442);
+            }
 
 
             //Exit Button
-            g2D.setColor(Color.BLACK);
-            g2D.drawRoundRect(exitButton.x, exitButton.y, exitButton.width, exitButton.height, 30, 30);
+            if (isHoveringExit) {
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(exitButton.x - 2, exitButton.y - 2, exitButton.width + 4, exitButton.height + 5, 30, 30);
+                g2D.setColor(new Color(236, 188, 109));
+                g2D.fillRoundRect(exitButton.x - 2, exitButton.y - 2, exitButton.width + 4, exitButton.height + 5, 30, 30);
 
 
-            g2D.setColor(new Color(236, 188, 109));
-            g2D.fillRoundRect(exitButton.x, exitButton.y, exitButton.width, exitButton.height, 30, 30);
+                //Exit Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 28));
+                g2D.drawString("EXIT", 268, 504);
+            } else {
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(exitButton.x, exitButton.y, exitButton.width, exitButton.height, 30, 30);
+                g2D.setColor(new Color(236, 188, 109));
+                g2D.fillRoundRect(exitButton.x, exitButton.y, exitButton.width, exitButton.height, 30, 30);
 
 
-            //Play Button Text
-            g2D.setColor(Color.BLACK);
-            g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
-            g2D.drawString("PLAY", 273, 322);
-
-
-            //Tutorial Button Text
-            g2D.setColor(Color.BLACK);
-            g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
-            g2D.drawString("TUTORIAL", 248, 382);
-
-
-            //Credits Button Text
-            g2D.setColor(Color.BLACK);
-            g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
-            g2D.drawString("CREDITS", 253, 442);
-
-
-            //Exit Button Text
-            g2D.setColor(Color.BLACK);
-            g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
-            g2D.drawString("EXIT", 273, 502);
+                //Exit Button Text
+                g2D.setColor(Color.BLACK);
+                g2D.setFont(new Font("Monospaced", Font.BOLD, 24));
+                g2D.drawString("EXIT", 273, 502);
+            }
 
 
             //Settings Icon
-            g2D.drawImage(setting_icon, settingsButton.x, settingsButton.y, settingsButton.width, settingsButton.height, this);
+            if (isHoveringSettings) {
+                g2D.drawImage(setting_icon, settingsButton.x - 2, settingsButton.y - 2, settingsButton.width + 4, settingsButton.height + 4, this);
+            } else {
+                g2D.drawImage(setting_icon, settingsButton.x, settingsButton.y, settingsButton.width, settingsButton.height, this);
+            }
         }
-        else if (pageSwitch == 2){
+        //The game playing screen
+        else if (pageSwitch == 2) {
 
             //makes the offscreen graphics if it doesn't exist
             if (offscreenGraphics == null) {
@@ -750,14 +822,11 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             //changes the background of game page
             if (backgroundChange == 1) {
                 setBackground(new Color(237, 225, 200));
-            }
-            else if (backgroundChange == 2){
+            } else if (backgroundChange == 2) {
                 offscreenGraphics.drawImage(chongqing, 0, 0, getWidth(), getHeight(), this); //sets image as background and scales it
-            }
-            else if (backgroundChange == 3){
+            } else if (backgroundChange == 3) {
                 offscreenGraphics.drawImage(newYork, 0, 0, getWidth(), getHeight(), this);
-            }
-            else if (backgroundChange == 4){
+            } else if (backgroundChange == 4) {
                 offscreenGraphics.drawImage(seoul, 0, 0, getWidth(), getHeight(), this);
             }
 
@@ -790,7 +859,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
                     //do some log math which tells us the exponent that it has, which also corresponds to the index
                     //of the picture that it should have
-                    index = (int) (Math.log(value/3.0)/Math.log(2));
+                    index = (int) (Math.log(value / 3.0) / Math.log(2));
 
                     //this is created so that we can used clipped shapes on images
                     Graphics2D g2dTile = (Graphics2D) offscreenGraphics.create();
@@ -809,81 +878,81 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                             //first we see if there is merge animation that needs to be animated
                             if (mergeStepMoved[i][j] != 0) {
 
-                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
-                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
+                                x_draw = j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw = i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
-                            //then we see if there is movement animation that needs to be animated
+                                //then we see if there is movement animation that needs to be animated
                             } else if (j * SQUARE_SIZE + BORDER_SIZE + XMove < j * SQUARE_SIZE + BORDER_SIZE + stepMoved[i][j] * 60) {
 
-                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
-                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
+                                x_draw = j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw = i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
-                            //otherwise, when the current block no longer needs to move, it will not move and remain static
-                            //i basically do that for all other directions
+                                //otherwise, when the current block no longer needs to move, it will not move and remain static
+                                //i basically do that for all other directions
                             } else {
-                                x_draw= j * SQUARE_SIZE + BORDER_SIZE + stepMoved[i][j] * 60;
+                                x_draw = j * SQUARE_SIZE + BORDER_SIZE + stepMoved[i][j] * 60;
                                 y_draw = i * SQUARE_SIZE + TOP_OFFSET;
 
                             }
 
-                        //left
+                            //left
                         } else if (x < 0 && y == 0) {
 
                             if (mergeStepMoved[i][j] != 0) {
 
-                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
-                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
+                                x_draw = j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw = i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
                             } else if (j * SQUARE_SIZE + BORDER_SIZE + XMove > j * SQUARE_SIZE + BORDER_SIZE + stepMoved[i][j] * 60) {
 
-                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
-                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
+                                x_draw = j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw = i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
                             } else {
 
-                                x_draw= j * SQUARE_SIZE + BORDER_SIZE + stepMoved[i][j] * 60;
+                                x_draw = j * SQUARE_SIZE + BORDER_SIZE + stepMoved[i][j] * 60;
                                 y_draw = i * SQUARE_SIZE + TOP_OFFSET;
 
                             }
 
-                        //down
+                            //down
                         } else if (y > 0 && x == 0) {
 
                             if (mergeStepMoved[i][j] != 0) {
 
-                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
-                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
+                                x_draw = j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw = i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
 
                             } else if (i * SQUARE_SIZE + TOP_OFFSET + YMove < i * SQUARE_SIZE + TOP_OFFSET + stepMoved[i][j] * 60) {
 
-                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
-                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
+                                x_draw = j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw = i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
 
                             } else {
 
-                                x_draw= j * SQUARE_SIZE + BORDER_SIZE;
+                                x_draw = j * SQUARE_SIZE + BORDER_SIZE;
                                 y_draw = i * SQUARE_SIZE + TOP_OFFSET + stepMoved[i][j] * 60;
 
                             }
 
-                        //up
+                            //up
                         } else if (y < 0 && x == 0) {
 
                             if (mergeStepMoved[i][j] != 0) {
 
-                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
-                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
+                                x_draw = j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw = i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
                             } else if (i * SQUARE_SIZE + TOP_OFFSET + YMove > i * SQUARE_SIZE + TOP_OFFSET + stepMoved[i][j] * 60) {
 
-                                x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
-                                y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
+                                x_draw = j * SQUARE_SIZE + BORDER_SIZE + XMove;
+                                y_draw = i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
                             } else {
 
-                                x_draw=j * SQUARE_SIZE + BORDER_SIZE ;
+                                x_draw = j * SQUARE_SIZE + BORDER_SIZE;
                                 y_draw = i * SQUARE_SIZE + TOP_OFFSET + stepMoved[i][j] * 60;
 
                             }
@@ -893,17 +962,17 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                         //here is where i actually draw it
                         Shape clip = new RoundRectangle2D.Float(x_draw, y_draw, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
                         g2dTile.setClip(clip);
-                        g2dTile.drawImage(imageCollection[skin][index],x_draw, y_draw, SQUARE_SIZE, SQUARE_SIZE, null);
+                        g2dTile.drawImage(imageCollection[skin][index], x_draw, y_draw, SQUARE_SIZE, SQUARE_SIZE, null);
                         g2dTile.dispose();
 
 
-                    //after all the animating are done, if the oldboard and board is the same, that means no changes has occured
-                    //no animation or merge is needed, then the static board will be drawn here
+                        //after all the animating are done, if the oldboard and board is the same, that means no changes has occured
+                        //no animation or merge is needed, then the static board will be drawn here
                     } else if (Arrays.deepEquals(oldBoard, board) && oldBoard[i][j] != 0) {
 
                         Shape clip = new RoundRectangle2D.Float(j * SQUARE_SIZE + BORDER_SIZE, i * SQUARE_SIZE + TOP_OFFSET, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
                         g2dTile.setClip(clip);
-                        g2dTile.drawImage(imageCollection[skin][index],j * SQUARE_SIZE + BORDER_SIZE, i * SQUARE_SIZE + TOP_OFFSET, SQUARE_SIZE, SQUARE_SIZE, null);
+                        g2dTile.drawImage(imageCollection[skin][index], j * SQUARE_SIZE + BORDER_SIZE, i * SQUARE_SIZE + TOP_OFFSET, SQUARE_SIZE, SQUARE_SIZE, null);
                         g2dTile.dispose();
 
                     }
@@ -912,71 +981,111 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
             g2D.drawImage(offscreenImage, 0, 0, this);
 
-            //Back Button
-            g2D.setFont(new Font("Plain", Font.BOLD, 18));
+            // Back Button
             g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-            g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
 
-
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("BACK", 10, 27);
+            if (isHoveringBack) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.fillRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 8, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 10, 27);
+            }
 
             //new game button
-            g2D.setFont(new Font("Plain", Font.BOLD, 18));
-            g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(resetBoardButton.x,resetBoardButton.y, resetBoardButton.width, resetBoardButton.height, 25, 25);
+            if (isHoveringReset) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(resetBoardButton.x-2, resetBoardButton.y-2, resetBoardButton.width+4, resetBoardButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(resetBoardButton.x-2, resetBoardButton.y-2, resetBoardButton.width+4, resetBoardButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("New Board", 251, 532);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 16));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(resetBoardButton.x, resetBoardButton.y, resetBoardButton.width, resetBoardButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(resetBoardButton.x, resetBoardButton.y, resetBoardButton.width, resetBoardButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("New Board", 257, 530);
+            }
+            //score display
+            g2D.setStroke(new BasicStroke(3));
             g2D.setColor(Color.BLACK);
-            g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(resetBoardButton.x, resetBoardButton.y, resetBoardButton.width, resetBoardButton.height, 25, 25);
+            g2D.drawRect(170, 55, 80, 30); //current score
+            g2D.drawRect(350, 55, 80, 30); //best score
+            g2D.setColor(new Color(230, 144, 123));
+            g2D.fillRect(170, 55, 80, 30); //current score
+            g2D.fillRect(350, 55, 80, 30); //best score
 
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("new Board", 22, 525);
+
+            g2D.setColor(Color.BLACK);
+            g2D.drawRect(165, 25, 89, 19); //current score
+            g2D.drawRect(350, 25, 80, 19); //best score
+            g2D.setColor(new Color(228, 186, 174));
+            g2D.fillRect(165, 25, 89, 19);
+            g2D.fillRect(350, 25, 80, 19);
 
             //score display
-
+            g2D.setFont(new Font("Plain", Font.BOLD, 14));
             g2D.setColor(Color.black);
-            g2D.drawString("score: "+ score, 190, 85);
+            g2D.drawString("Score", 187, 40);
+            g2D.setFont(new Font("Plain", Font.BOLD, 18));
+            g2D.drawString("" + score, 175, 76);
 
             //highscore display
-            g2D.setColor(Color.red);
+            g2D.setFont(new Font("Plain", Font.BOLD, 14));
+            g2D.setColor(Color.black);
+            g2D.drawString("High Score", 352, 40);
+            g2D.setFont(new Font("Plain", Font.BOLD, 18));
+            g2D.drawString("" + highScore, 355, 76);
 
-            g2D.drawString("high Score: " + highScore, 325, 85);
 
-
-            if(winner){
+            if (winner) {
                 //this will display me an image if there is a winning piece on the board
-                winner=false;
-                lost=false;
+                winner = false;
+                lost = false;
 
                 offscreenGraphics.setComposite(AlphaComposite.Clear);
                 offscreenGraphics.fillRect(0, 0, 600, 600);
                 offscreenGraphics.setComposite(AlphaComposite.SrcOver);
 
-                offscreenGraphics.drawImage(you_win,0,0,600,600,null);
-                g2D.drawImage(offscreenImage,0,0,this);
+                offscreenGraphics.drawImage(you_win, 0, 0, 600, 600, null);
+                g2D.drawImage(offscreenImage, 0, 0, this);
 
-                timer4 = new Timer(4000,e->{
+                timer4 = new Timer(4000, e -> {
                     resetBoard();
                 });
                 timer4.setRepeats(false);
                 timer4.start();
 
-            }else if(lost){
+            } else if (lost) {
                 //this will display me an image if the board is full and player lost
-                winner=false;
-                lost=false;
+                winner = false;
+                lost = false;
 
                 offscreenGraphics.setComposite(AlphaComposite.Clear);
                 offscreenGraphics.fillRect(0, 0, 600, 600);
                 offscreenGraphics.setComposite(AlphaComposite.SrcOver);
 
-                offscreenGraphics.drawImage(you_lose,0,0,600,600,null);
-                g2D.drawImage(offscreenImage,0,0,this);
+                offscreenGraphics.drawImage(you_lose, 0, 0, 600, 600, null);
+                g2D.drawImage(offscreenImage, 0, 0, this);
 
-                timer5 = new Timer(4000,e->{
+                timer5 = new Timer(4000, e -> {
                     resetBoard();
                 });
                 timer5.setRepeats(false);
@@ -984,13 +1093,15 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             }
 
         }
-
+        //The start of the Tutorial pages
         else if (pageSwitch == 3) {
             setBackground(new Color(237, 225, 200));
 
+            //draws example picture
             Image tutorialPicOne = Toolkit.getDefaultToolkit().getImage("tutorialPicOne.png");
             g2D.drawImage(tutorialPicOne, 100, 100, 400, 400, this);
 
+            //Instructions
             g2D.setStroke(new BasicStroke(4));
             g2D.setColor(Color.BLACK);
             g2D.drawRoundRect(100, 50, 400, 50, 30, 30);
@@ -999,38 +1110,56 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.fillRoundRect(100, 50, 400, 50, 30, 30);
             g2D.fillRoundRect(35, 518, 530, 50, 30, 30);
 
-
             g2D.setColor(Color.BLACK);
             g2D.setFont(new Font("Plain", Font.BOLD, 18));
             g2D.drawString("Every game begins with three blocks of 3", 118, 80);
             g2D.drawString("Let's see what happens when the left key is pressed...", 60, 550);
 
 
-            //Next Button
+            // Next Button
+            if (isHoveringNext) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 533, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 535, 27);
+            }
+
+
+            // Back Button
             g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
-            g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
 
-
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("NEXT", 535, 27);
-
-
-            //Back Button
-            g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-            g2D.setColor(Color.BLACK);
-            g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-
-
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("BACK", 10, 27);
+            if (isHoveringBack) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.fillRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 8, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 10, 27);
+            }
         }
-
-
         else if (pageSwitch == 4) {
             setBackground(new Color(214, 207, 187));
             Image tutorialPicOne = Toolkit.getDefaultToolkit().getImage("tutorialPicTwo.png");
@@ -1051,34 +1180,51 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.drawString("to the left as far as possible:", 118, 150);
 
 
-            //Next Button
+            // Next Button
+            if (isHoveringNext) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 533, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 535, 27);
+            }
+
+            // Back Button
             g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
-            g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+
+            if (isHoveringBack) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.fillRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 8, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 10, 27);
+            }
 
 
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("NEXT", 535, 27);
-
-
-            //Back Button
-            g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-            g2D.setColor(Color.BLACK);
-            g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-
-
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("BACK", 10, 27);
-
-
-        }
-
-
-        else if (pageSwitch == 5) {
+        } else if (pageSwitch == 5) {
             Image tutorialPicOne = Toolkit.getDefaultToolkit().getImage("tutorialPicTwo.png");
             g2D.drawImage(tutorialPicOne, 100, 100, 400, 400, this);
 
@@ -1096,33 +1242,51 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.drawString("is generated in a random spot!", 318, 420);
 
 
-            //Next Button
-            g2D.setFont(new Font("Plain", Font.BOLD, 18));
+            // Next Button
+            if (isHoveringNext) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 533, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 535, 27);
+            }
+
+
+            // Back Button
             g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
-            g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
 
+            if (isHoveringBack) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.fillRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 8, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 10, 27);
+            }
 
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("NEXT", 535, 27);
-
-
-            //Back Button
-            g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-            g2D.setColor(Color.BLACK);
-            g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-
-
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("BACK", 10, 27);
-        }
-
-
-        else if (pageSwitch == 6) {
+        } else if (pageSwitch == 6) {
             Image tutorialPicOne = Toolkit.getDefaultToolkit().getImage("tutorialPicThree.png");
             g2D.drawImage(tutorialPicOne, 100, 100, 400, 400, this);
 
@@ -1140,33 +1304,51 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.drawString("every block moves up as far as possible!", 98, 420);
 
 
-            //Next Button
-            g2D.setFont(new Font("Plain", Font.BOLD, 18));
+            // Next Button
+            if (isHoveringNext) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 533, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 535, 27);
+            }
+
+
+            // Back Button
             g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
-            g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
 
+            if (isHoveringBack) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.fillRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 8, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 10, 27);
+            }
 
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("NEXT", 535, 27);
-
-
-            //Back Button
-            g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-            g2D.setColor(Color.BLACK);
-            g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-
-
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("BACK", 10, 27);
-        }
-
-
-        else if (pageSwitch == 7) {
+        } else if (pageSwitch == 7) {
             Image tutorialPicOne = Toolkit.getDefaultToolkit().getImage("tutorialPicThree.png");
             g2D.drawImage(tutorialPicOne, 100, 100, 400, 400, this);
 
@@ -1184,33 +1366,51 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.drawString("'3' block spawned!", 258, 287);
 
 
-            //Next Button
-            g2D.setFont(new Font("Plain", Font.BOLD, 18));
+            // Next Button
+            if (isHoveringNext) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 533, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 535, 27);
+            }
+
+
+            // Back Button
             g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
-            g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
 
+            if (isHoveringBack) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.fillRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 8, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 10, 27);
+            }
 
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("NEXT", 535, 27);
-
-
-            //Back Button
-            g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-            g2D.setColor(Color.BLACK);
-            g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-
-
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("BACK", 10, 27);
-        }
-
-
-        else if (pageSwitch == 8) {
+        } else if (pageSwitch == 8) {
             Image tutorialPicOne = Toolkit.getDefaultToolkit().getImage("tutorialPicFour.png");
             g2D.drawImage(tutorialPicOne, 100, 100, 400, 400, this);
 
@@ -1237,33 +1437,50 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.drawString("Have you been noticing a pattern?", 168, 517);
 
 
-            //Next Button
-            g2D.setFont(new Font("Plain", Font.BOLD, 18));
+            // Next Button
+            if (isHoveringNext) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 533, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 535, 27);
+            }
+
+            // Back Button
             g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
-            g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
 
+            if (isHoveringBack) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.fillRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 8, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 10, 27);
+            }
 
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("NEXT", 535, 27);
-
-
-            //Back Button
-            g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-            g2D.setColor(Color.BLACK);
-            g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-
-
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("BACK", 10, 27);
-        }
-
-
-        else if (pageSwitch == 9) {
+        } else if (pageSwitch == 9) {
             Image tutorialPicOne = Toolkit.getDefaultToolkit().getImage("tutorialPicFour.png");
             g2D.drawImage(tutorialPicOne, 100, 100, 400, 400, this);
 
@@ -1280,32 +1497,50 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.drawString("Identical blocks merge and add when you shift them together!", 22, 537);
 
 
-            //Next Button
+            // Next Button
+            if (isHoveringNext) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 533, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 535, 27);
+            }
+
+            // Back Button
             g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
-            g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
 
+            if (isHoveringBack) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.fillRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 8, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 10, 27);
+            }
 
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("NEXT", 535, 27);
-
-
-            //Back Button
-            g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-            g2D.setColor(Color.BLACK);
-            g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-
-
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("BACK", 10, 27);
-        }
-
-
-        else if (pageSwitch == 10) {
+        } else if (pageSwitch == 10) {
             Image tutorialPicOne = Toolkit.getDefaultToolkit().getImage("tutorialPicFour.png");
             g2D.drawImage(tutorialPicOne, 100, 100, 400, 400, this);
 
@@ -1317,23 +1552,36 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.fillRoundRect(30, 500, 540, 60, 30, 30);
 
 
-            //Current score & Best score
+            //score display
             g2D.setStroke(new BasicStroke(3));
             g2D.setColor(Color.BLACK);
-            g2D.drawRect(170, 40, 80, 30); //current score
-            g2D.drawRect(350, 40, 80, 30); //best score
+            g2D.drawRect(170, 55, 80, 30); //current score
+            g2D.drawRect(350, 55, 80, 30); //best score
             g2D.setColor(new Color(230, 144, 123));
-            g2D.fillRect(170, 40, 80, 30); //current score
-            g2D.fillRect(350, 40, 80, 30); //best score
+            g2D.fillRect(170, 55, 80, 30); //current score
+            g2D.fillRect(350, 55, 80, 30); //best score
 
-            //Score texts
+
             g2D.setColor(Color.BLACK);
-            g2D.setFont(new Font("Plain", Font.BOLD, 12));
-            g2D.drawString("Current Score", 169, 30);
-            g2D.drawString("Best Score", 358, 30);
-            g2D.setFont(new Font("Plain", Font.BOLD, 16));
-            g2D.drawString("12", 200, 60);
-            g2D.drawString("12", 380, 60);
+            g2D.drawRect(165, 25, 89, 19); //current score
+            g2D.drawRect(350, 25, 80, 19); //best score
+            g2D.setColor(new Color(228, 186, 174));
+            g2D.fillRect(165, 25, 89, 19);
+            g2D.fillRect(350, 25, 80, 19);
+
+            //score display
+            g2D.setFont(new Font("Plain", Font.BOLD, 14));
+            g2D.setColor(Color.black);
+            g2D.drawString("Score", 187, 40);
+            g2D.setFont(new Font("Plain", Font.BOLD, 18));
+            g2D.drawString("12", 175, 76);
+
+            //highscore display
+            g2D.setFont(new Font("Plain", Font.BOLD, 14));
+            g2D.setColor(Color.black);
+            g2D.drawString("High Score", 352, 40);
+            g2D.setFont(new Font("Plain", Font.BOLD, 18));
+            g2D.drawString("12", 355, 76);
 
 
             g2D.setStroke(new BasicStroke(6));
@@ -1342,32 +1590,50 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.drawString("Your current score and best score will be shown at the top", 39, 537);
 
 
-            //Next Button
-            g2D.setColor(new Color(119, 62, 39));
-            g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
-            g2D.setColor(Color.BLACK);
-            g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+            // Next Button
+            if (isHoveringNext) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x-2, tutorialNext.y-2, tutorialNext.width+4, tutorialNext.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 533, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(tutorialNext.x, tutorialNext.y, tutorialNext.width, tutorialNext.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("NEXT", 535, 27);
+            }
 
-
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("NEXT", 535, 27);
-
-
-            //Back Button
+            // Back Button
             g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-            g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
 
+            if (isHoveringBack) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.fillRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 8, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 10, 27);
+            }
 
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("BACK", 10, 27);
-        }
-
-
-        else if (pageSwitch == 11) {
+        } else if (pageSwitch == 11) {
             Image tutorialPicOne = Toolkit.getDefaultToolkit().getImage("tutorialPicFive.png");
             g2D.drawImage(tutorialPicOne, 100, 100, 400, 400, this);
 
@@ -1381,34 +1647,51 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
             g2D.setFont(new Font("Plain", Font.BOLD, 18));
             g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("Create a block of 19683 to win!!!", 158, 140);
+            g2D.drawString("Create a block of 3072 to win!!!", 158, 140);
 
 
             //Home Button
-            g2D.drawRoundRect(tutorialHome.x, tutorialHome.y, tutorialHome.width, tutorialHome.height, 30, 30);
-            g2D.setColor(new Color(152, 108, 93));
-            g2D.fillRoundRect(tutorialHome.x, tutorialHome.y, tutorialHome.width, tutorialHome.height, 30, 30);
+            if (isHoveringHome) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.drawRoundRect(tutorialHome.x-2, tutorialHome.y-2, tutorialHome.width+4, tutorialHome.height+5, 30, 30);
+                g2D.setColor(new Color(152, 108, 93));
+                g2D.fillRoundRect(tutorialHome.x-2, tutorialHome.y-2, tutorialHome.width+4, tutorialHome.height+5, 30, 30);
+                g2D.setColor(new Color(255, 166, 143));
+                g2D.drawString("HOME", 267, 568);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.drawRoundRect(tutorialHome.x, tutorialHome.y, tutorialHome.width, tutorialHome.height, 30, 30);
+                g2D.setColor(new Color(152, 108, 93));
+                g2D.fillRoundRect(tutorialHome.x, tutorialHome.y, tutorialHome.width, tutorialHome.height, 30, 30);
+                g2D.setColor(new Color(255, 166, 143));
+                g2D.drawString("HOME", 271, 566);
+            }
 
-
-            g2D.setColor(new Color(255, 166, 143));
-            g2D.drawString("HOME", 271, 566);
-
-
-            //Back Button
+            // Back Button
             g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-            g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
 
-
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("BACK", 10, 27);
+            if (isHoveringBack) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.fillRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 8, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 10, 27);
+            }
 
 
         }
-
-
+        //Credits
         else if (pageSwitch == 12) {
             setBackground(new Color(241, 203, 136));
             g2D.setFont(new Font("Plain", Font.BOLD, 24));
@@ -1422,99 +1705,156 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.drawString("Aiden", 400, 500);
 
 
-            //add image of ourselves maybe
+            //our faces
+            g2D.drawImage(aiden, 315, 150, 250, 300, this);
+            g2D.drawImage(will, 35, 150, 250, 300, this);
+            //face picture borders
+            g2D.setStroke(new BasicStroke(4));
+            g2D.drawRect(315, 150, 250, 300);
+            g2D.drawRect(35, 150, 250, 300);
 
-
-            //Back Button
-            g2D.setFont(new Font("Plain", Font.BOLD, 18));
+            // Back Button
             g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-            g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
 
+            if (isHoveringBack) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.fillRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 8, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 10, 27);
+            }
 
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("BACK", 10, 27);
         }
+        //Settings Screen
         else if (pageSwitch == 13) {
             setBackground(new Color(184, 163, 139));
 
 
             //Settings Box
             g2D.setStroke(new BasicStroke(5));
-            g2D.drawRoundRect(90,100,400,450,50,50);
+            g2D.drawRoundRect(90, 100, 400, 450, 50, 50);
             g2D.setColor(new Color(142, 110, 101));
-            g2D.fillRoundRect(90,100,400,450,50,50);
+            g2D.fillRoundRect(90, 100, 400, 450, 50, 50);
 
 
             //Music Button
             g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(3));
-            g2D.drawRoundRect(140,150,300,80,50,50);
+            g2D.drawRoundRect(140, 150, 300, 80, 50, 50);
             g2D.setColor(new Color(221, 174, 162));
-            g2D.fillRoundRect(140,150,300,80,50,50);
+            g2D.fillRoundRect(140, 150, 300, 80, 50, 50);
 
 
             //SFX Button
             g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(3));
-            g2D.drawRoundRect(140,280,300,80,50,50);
+            g2D.drawRoundRect(140, 280, 300, 80, 50, 50);
             g2D.setColor(new Color(221, 174, 162));
-            g2D.fillRoundRect(140,280,300,80,50,50);
+            g2D.fillRoundRect(140, 280, 300, 80, 50, 50);
 
 
             //Backgrounds Button
             g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(3));
-            g2D.drawRoundRect(140,410,300,80,50,50);
-            g2D.setColor(new Color(188, 119, 99));
-            g2D.fillRoundRect(140,410,300,80,50,50);
-            g2D.setFont(new Font("Plain", Font.BOLD, 18));
 
+            if (isHoveringBackgrounds) {
+                g2D.drawRoundRect(138, 408, 304, 85, 50, 50);
+                g2D.setColor(new Color(188, 119, 99));
+                g2D.fillRoundRect(138, 408, 304, 85, 50, 50);
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.setColor(Color.BLACK);
+                g2D.drawString("BACKGROUNDS", 206, 456);
+            } else {
+                g2D.drawRoundRect(140, 410, 300, 80, 50, 50);
+                g2D.setColor(new Color(188, 119, 99));
+                g2D.fillRoundRect(140, 410, 300, 80, 50, 50);
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.setColor(Color.BLACK);
+                g2D.drawString("BACKGROUNDS", 213, 455);
+            }
 
-            g2D.setColor(Color.BLACK);
-            g2D.setStroke(new BasicStroke(3));
-            g2D.drawString("BACKGROUNDS", 213, 455);
-
-
+            //Since both music and SFX button have essentially 2 versions (ON & OFF), there needs to be 2 hovering checks for each button
             if (musicButton == 1) {
                 //Music ON Texts
-                g2D.drawRoundRect(musicOn.x, musicOn.y, musicOn.width, musicOn.height, 20, 20); //MUSIC
-                g2D.setColor(new Color(29, 225, 41));
-                g2D.fillRoundRect(musicOn.x, musicOn.y, musicOn.width, musicOn.height, 20, 20); //MUSIC
-                g2D.setColor(Color.BLACK);
-                g2D.drawString("ON", 325, 197);
-            }
-
-
-            else if (musicButton == -1){
+                if (isHoveringMusic) {
+                    g2D.drawRoundRect(musicOn.x - 2, musicOn.y - 2, musicOn.width + 4, musicOn.height + 5, 20, 20); //MUSIC
+                    g2D.setColor(new Color(29, 225, 41));
+                    g2D.fillRoundRect(musicOn.x - 2, musicOn.y - 2, musicOn.width + 4, musicOn.height + 5, 20, 20); //MUSIC
+                    g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                    g2D.setColor(Color.BLACK);
+                    g2D.drawString("ON", 323, 198);
+                } else {
+                    g2D.drawRoundRect(musicOn.x, musicOn.y, musicOn.width, musicOn.height, 20, 20); //MUSIC
+                    g2D.setColor(new Color(29, 225, 41));
+                    g2D.fillRoundRect(musicOn.x, musicOn.y, musicOn.width, musicOn.height, 20, 20); //MUSIC
+                    g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                    g2D.setColor(Color.BLACK);
+                    g2D.drawString("ON", 325, 197);
+                }
+            } else if (musicButton == -1) {
                 //Music OFF Texts
-                g2D.drawRoundRect(musicOn.x, musicOn.y, musicOn.width, musicOn.height, 20, 20); //MUSIC
-                g2D.setColor(new Color(237, 69, 69));
-                g2D.fillRoundRect(musicOn.x, musicOn.y, musicOn.width, musicOn.height, 20, 20);
-                g2D.setColor(Color.BLACK);
-                g2D.drawString("OFF", 322, 197);
-
-
+                if (isHoveringMusic) {
+                    g2D.drawRoundRect(musicOn.x - 2, musicOn.y - 2, musicOn.width + 4, musicOn.height + 5, 20, 20); //MUSIC
+                    g2D.setColor(new Color(237, 69, 69));
+                    g2D.fillRoundRect(musicOn.x - 2, musicOn.y - 2, musicOn.width + 4, musicOn.height + 5, 20, 20); //MUSIC
+                    g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                    g2D.setColor(Color.BLACK);
+                    g2D.drawString("OFF", 319, 198);
+                } else {
+                    g2D.drawRoundRect(musicOn.x, musicOn.y, musicOn.width, musicOn.height, 20, 20); //MUSIC
+                    g2D.setColor(new Color(237, 69, 69));
+                    g2D.fillRoundRect(musicOn.x, musicOn.y, musicOn.width, musicOn.height, 20, 20); //MUSIC
+                    g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                    g2D.setColor(Color.BLACK);
+                    g2D.drawString("OFF", 322, 197);
+                }
             }
-
-
             if (SFXButton == 1) {
                 // SFX ON Texts
-                g2D.drawRoundRect(SFXOn.x, SFXOn.y, SFXOn.width, SFXOn.height, 20, 20); //SFX
-                g2D.setColor(new Color(29, 225, 41));
-                g2D.fillRoundRect(SFXOn.x, SFXOn.y, SFXOn.width, SFXOn.height, 20, 20); //SFX
-                g2D.setColor(Color.BLACK);
-                g2D.drawString("ON", 325, 327);
-            }
-            else if (SFXButton == -1){
+                if (isHoveringSFX) {
+                    g2D.drawRoundRect(SFXOn.x - 2, SFXOn.y - 2, SFXOn.width + 4, SFXOn.height + 5, 20, 20); //SFX
+                    g2D.setColor(new Color(29, 225, 41));
+                    g2D.fillRoundRect(SFXOn.x - 2, SFXOn.y - 2, SFXOn.width + 4, SFXOn.height + 5, 20, 20); //SFX
+                    g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                    g2D.setColor(Color.BLACK);
+                    g2D.drawString("ON", 323, 328);
+                } else {
+                    g2D.drawRoundRect(SFXOn.x, SFXOn.y, SFXOn.width, SFXOn.height, 20, 20); //SFX
+                    g2D.setColor(new Color(29, 225, 41));
+                    g2D.fillRoundRect(SFXOn.x, SFXOn.y, SFXOn.width, SFXOn.height, 20, 20); //SFX
+                    g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                    g2D.setColor(Color.BLACK);
+                    g2D.drawString("ON", 325, 327);
+                }
+
+            } else if (SFXButton == -1) {
                 // SFX OFF Texts
-                g2D.drawRoundRect(SFXOn.x, SFXOn.y, SFXOn.width, SFXOn.height, 20, 20); //SFX
-                g2D.setColor(new Color(237, 69, 69));
-                g2D.fillRoundRect(SFXOn.x, SFXOn.y, SFXOn.width, SFXOn.height, 20, 20); //SFX
-                g2D.setColor(Color.BLACK);
-                g2D.drawString("OFF", 322, 327);
+                if (isHoveringSFX) {
+                    g2D.drawRoundRect(SFXOn.x - 2, SFXOn.y - 2, SFXOn.width + 4, SFXOn.height + 5, 20, 20); //SFX
+                    g2D.setColor(new Color(237, 69, 69));
+                    g2D.fillRoundRect(SFXOn.x - 2, SFXOn.y - 2, SFXOn.width + 4, SFXOn.height + 5, 20, 20); //SFX
+                    g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                    g2D.setColor(Color.BLACK);
+                    g2D.drawString("OFF", 320, 328);
+                } else {
+                    g2D.drawRoundRect(SFXOn.x, SFXOn.y, SFXOn.width, SFXOn.height, 20, 20); //SFX
+                    g2D.setColor(new Color(237, 69, 69));
+                    g2D.fillRoundRect(SFXOn.x, SFXOn.y, SFXOn.width, SFXOn.height, 20, 20); //SFX
+                    g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                    g2D.setColor(Color.BLACK);
+                    g2D.drawString("OFF", 322, 327);
+                }
+
             }
             //Settings Texts
             g2D.setColor(Color.BLACK);
@@ -1523,20 +1863,29 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.drawString("SFX", 200, 327);
 
 
-            //Back Button
-            g2D.setFont(new Font("Plain", Font.BOLD, 18));
+            // Back Button
             g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-            g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
 
+            if (isHoveringBack) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.fillRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 8, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 10, 27);
+            }
 
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("BACK", 10, 27);
         }
-
-
+        //Backgrounds Customize Screen
         else if (pageSwitch == 14) {
 
             setBackground(new Color(189, 211, 116));
@@ -1553,25 +1902,23 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             Rectangle newYorkBorder = new Rectangle(216, 216, 168, 208);
             Rectangle seoulBorder = new Rectangle(406, 216, 168, 208);
 
-            g2D.setColor (Color.BLACK);
+            g2D.setColor(Color.BLACK);
             g2D.fill(chongqingBorder);
             g2D.fill(newYorkBorder);
             g2D.fill(seoulBorder);
 
-            //indicates which background is chosen
-            if (backgroundChange == 2){
+            //changes the border outline if a background is chosen
+            //mechanism behind backgroundChange is the same as pageSwitch
+            if (backgroundChange == 2) {
                 g2D.setColor(new Color(244, 114, 76));
                 g2D.fill(chongqingBorder);
-            }
-            else if (backgroundChange == 3){
+            } else if (backgroundChange == 3) {
                 g2D.setColor(new Color(244, 114, 76));
                 g2D.fill(newYorkBorder);
-            }
-            else if (backgroundChange == 4){
+            } else if (backgroundChange == 4) {
                 g2D.setColor(new Color(244, 114, 76));
                 g2D.fill(seoulBorder);
             }
-
 
             g2D.setColor(Color.BLACK);
 
@@ -1584,29 +1931,49 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.drawImage(seoul, 410, 220, 160, 200, this);
 
 
-            //Back Button
-            g2D.setFont(new Font("Plain", Font.BOLD, 18));
+            // Back Button
             g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
-            g2D.setColor(Color.BLACK);
             g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
 
-
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("BACK", 10, 27);
+            if (isHoveringBack) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.fillRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x-2, backButton.y-2, backButton.width+8, backButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 8, 28);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.fillRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.drawRoundRect(backButton.x, backButton.y, backButton.width, backButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("BACK", 10, 27);
+            }
 
 
             //Reset Button
-            g2D.setColor(new Color(136, 55, 23));
-            g2D.fillRoundRect(resetButton.x, resetButton.y, resetButton.width, resetButton.height, 25, 25);
-            g2D.setColor(Color.BLACK);
-            g2D.setStroke(new BasicStroke(2));
-            g2D.drawRoundRect(resetButton.x, resetButton.y, resetButton.width, resetButton.height, 25, 25);
-
-
-            g2D.setColor(new Color(239, 211, 204));
-            g2D.drawString("RESET", 270, 542);
+            if (isHoveringReset) {
+                g2D.setFont(new Font("Plain", Font.BOLD, 22));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(resetButton.x-2, resetButton.y-2, resetButton.width+4, resetButton.height+5, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(resetButton.x-2, resetButton.y-2, resetButton.width+4, resetButton.height+5, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("RESET", 263, 543);
+            }
+            else{
+                g2D.setFont(new Font("Plain", Font.BOLD, 18));
+                g2D.setColor(new Color(136, 55, 23));
+                g2D.fillRoundRect(resetButton.x, resetButton.y, resetButton.width, resetButton.height, 25, 25);
+                g2D.setColor(Color.BLACK);
+                g2D.setStroke(new BasicStroke(2));
+                g2D.drawRoundRect(resetButton.x, resetButton.y, resetButton.width, resetButton.height, 25, 25);
+                g2D.setColor(new Color(239, 211, 204));
+                g2D.drawString("RESET", 270, 542);
+            }
         }
     }
 
@@ -1616,25 +1983,26 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
 
     // MouseListener methods
+    //Description: Checks whether buttons were clicked, and if so, brings the user to the screen corresponding to the button they pressed
+    //Parameters: The object MouseEvent e that represents mouse-related events (like clicking, releasing, etc)
+    //Return: Nothing
     public void mouseClicked(MouseEvent e) {
 
-
         Point clicked = e.getPoint();
-
-
         //HomePage Buttons
-
-
         //Play
+        //Each button needs to have the condition that whichever screen they are drawn in, that screen must be the screen shown
+        //Or else, the user could for example be on the tutorial screen and click the center and trigger the play button
         if (pageSwitch == 1) {
-            if (playButton.contains(clicked)) {
+            //this mechanism is used for all buttons: if the screen it's drawn on is displayed, and it's pressed, it will draw the desired screen or perform the desired action
+            if (playButton.contains(clicked)) { //if the play button is pressed, the play screen will be drawn
                 pageSwitch = 2;
                 repaint();
             }
         }
         //Tutorial
         if (pageSwitch == 1) {
-            if (tutorialButton.contains(clicked)) {
+            if (tutorialButton.contains(clicked)) { //if the tutorial button is pressed, the tutorial first page is drawn
                 pageSwitch = 3;
                 repaint();
             }
@@ -1655,7 +2023,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         }
         //Exit
         if (pageSwitch == 1) {
-            if (exitButton.contains(clicked)) {
+            if (exitButton.contains(clicked)) {//if exit button is pressed, close the window
                 System.exit(0);
             }
         }
@@ -1664,14 +2032,17 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             if (backButton.contains(clicked)) {
                 pageSwitch = 1;
                 repaint();
-            }else if(resetBoardButton.contains(clicked)){
-                pageSwitch=2;
-                resetBoard();
+            } else if (resetBoardButton.contains(clicked)) {
+                pageSwitch = 2;
+                resetBoard(); //calls resetBoard method and restarts the game
             }
         }
 
 
         //Tutorial Buttons
+        //Pressing next brings user to the next instruction page
+        //Pressing back brings user to the previous page
+        //the instruction/tutorial pages increment by 1 for pageSwitch
         else if (pageSwitch == 3) {
             if (tutorialNext.contains(clicked)) {
                 pageSwitch = 4;
@@ -1758,26 +2129,28 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 pageSwitch = 1;
                 repaint();
             }
-        }
-
-
-        else if (pageSwitch == 13) {
+        } else if (pageSwitch == 13) {
             if (backButton.contains(clicked)) {
                 pageSwitch = 1;
                 repaint();
-            } else if (musicOn.contains(clicked)) {
+            }
+            else if (musicOn.contains(clicked)) {
+                //if the music button is pressed and currently ON (1), turn it OFF (-1) and redraw the button to indicate it's OFF
                 if (musicButton == 1) {
                     musicButton = -1;
-                    music.stop();
+                    music.stop(); //stops the music
                     repaint();
                 }
+                //if the music button is pressed and currently OFF (-1), turn it ON (1) and redraw the button to indicate it's ON
                 else if (musicButton == -1) {
                     musicButton = 1;
-                    music.start();
-                    music.loop(Clip.LOOP_CONTINUOUSLY);
+                    music.start(); //turns on music
+                    music.loop(Clip.LOOP_CONTINUOUSLY); //loops forever
                     repaint();
                 }
-            } else if (SFXOn.contains(clicked)) {
+            }
+            //Basically same thing as musicButton
+            else if (SFXOn.contains(clicked)) {
                 if (SFXButton == 1) {
                     SFXButton = -1;
                     repaint();
@@ -1785,40 +2158,35 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     SFXButton = 1;
                     repaint();
                 }
-            } else if (backgroundButton.contains(clicked)){
+            } else if (backgroundButton.contains(clicked)) {
                 pageSwitch = 14;
                 repaint();
             }
-        }
-        else if (pageSwitch == 14){
+        } else if (pageSwitch == 14) {
             if (backButton.contains(clicked)) {
                 pageSwitch = 13;
                 repaint();
             }
-            else if (chongqingButton.contains(clicked)){
+            //if the option is selected, the background and skin of game gets updated
+            else if (chongqingButton.contains(clicked)) {
                 backgroundChange = 2;
-                skin=0;
+                skin = 0; //changes skin to numbers
                 repaint();
-            }
-            else if (newYorkButton.contains(clicked)){
+            } else if (newYorkButton.contains(clicked)) {
                 backgroundChange = 3;
-                skin=1;
+                skin = 1; //changes skin to colours
                 repaint();
-            }
-            else if (seoulButton.contains(clicked)){
+            } else if (seoulButton.contains(clicked)) {
                 backgroundChange = 4;
-                skin=2;
+                skin = 2; //changes skin to fruits
                 repaint();
-            }
-            else if (resetButton.contains(clicked)){
+            } else if (resetButton.contains(clicked)) {
                 backgroundChange = 1;
-
+                skin = 0;
                 repaint();
             }
         }
     }
-
-
 
 
     public void mouseReleased(MouseEvent e) {
@@ -1841,8 +2209,141 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     public void mouseDragged(MouseEvent e) {
     }
 
-
+    //Description: If the cursor hovers over any buttons, this method will notify the program through a boolean variable and result in an "animation"
+    //Parameters: The object MouseEvent e that represents mouse-related events (like clicking, releasing, etc)
+    //Return: Nothing
     public void mouseMoved(MouseEvent e) {
+        //retrieves coordinates of cursor
+        int mouseX = e.getX();
+        int mouseY = e.getY();
+
+
+        // Checks if mouse is on the button
+        //True means it is on the button, false means it is not
+        //We don't have to check for pageSwitch == 1 because even if the cursor is over the button, the button isn't drawn so nothing shows
+        //However, for efficiency and speed this might help
+        if (pageSwitch == 1) {
+            //Play
+            if (playButton.contains(mouseX, mouseY)) {
+                isHoveringPlay = true;
+                repaint();
+            } else {
+                isHoveringPlay = false;
+                repaint();
+            }
+            //Tutorial
+            if (tutorialButton.contains(mouseX, mouseY)) {
+                isHoveringTutorial = true;
+                repaint();
+            } else {
+                isHoveringTutorial = false;
+                repaint();
+            }
+
+            //Credits
+            if (creditsButton.contains(mouseX, mouseY)) {
+                isHoveringCredits = true;
+                repaint();
+            } else {
+                isHoveringCredits = false;
+                repaint();
+            }
+            //Settings
+            if (settingsButton.contains(mouseX, mouseY)) {
+                isHoveringSettings = true;
+                repaint();
+            } else {
+                isHoveringSettings = false;
+                repaint();
+            }
+            //Exit
+            if (exitButton.contains(mouseX, mouseY)) {
+                isHoveringExit = true;
+                repaint();
+            } else {
+                isHoveringExit = false;
+                repaint();
+            }
+        }
+
+        //Game Reset Button
+        if (pageSwitch == 2) {
+            if (resetBoardButton.contains(mouseX, mouseY)) {
+                isHoveringReset = true;
+                repaint();
+            } else {
+                isHoveringReset = false;
+                repaint();
+            }
+        }
+        //Background Reset Button
+        if(pageSwitch == 14){
+            if (resetButton.contains(mouseX, mouseY)) {
+                isHoveringReset = true;
+                repaint();
+            } else {
+                isHoveringReset = false;
+                repaint();
+            }
+        }
+
+        //Back Buttons
+        //applies to every back button
+        if (backButton.contains(mouseX, mouseY)) {
+            isHoveringBack = true;
+            repaint();
+        } else {
+            isHoveringBack = false;
+            repaint();
+        }
+
+        //Next Button
+        //applies to every next button
+        if (tutorialNext.contains(mouseX, mouseY)) {
+            isHoveringNext = true;
+            repaint();
+        } else {
+            isHoveringNext = false;
+            repaint();
+        }
+
+        //Tutorial Home Button
+        if (pageSwitch == 11){
+            if (tutorialHome.contains(mouseX, mouseY)) {
+                isHoveringHome = true;
+                repaint();
+            } else {
+                isHoveringHome = false;
+                repaint();
+            }
+        }
+
+        //Setting page buttons
+        if (pageSwitch == 13) {
+            if (musicOn.contains(mouseX, mouseY)) {
+                isHoveringMusic = true;
+                repaint();
+            } else {
+                isHoveringMusic = false;
+                repaint();
+            }
+
+            if (SFXOn.contains(mouseX, mouseY)) {
+                isHoveringSFX = true;
+                repaint();
+            } else {
+                isHoveringSFX = false;
+                repaint();
+            }
+
+            if (backgroundButton.contains(mouseX, mouseY)) {
+                isHoveringBackgrounds = true;
+                repaint();
+            } else {
+                isHoveringBackgrounds = false;
+                repaint();
+            }
+        }
     }
 
 
@@ -1909,12 +2410,12 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         how_many_steps_moved();
 
         //if the board still equal though, it will prevent new blocks from spawning
-        if(Arrays.deepEquals(oldBoard,board)){
-            blockSpawning=false;
-            didMove=false;
-        }else{
-            blockSpawning=true;
-            didMove=true;
+        if (Arrays.deepEquals(oldBoard, board)) {
+            blockSpawning = false;
+            didMove = false;
+        } else {
+            blockSpawning = true;
+            didMove = true;
         }
 
         //a timer is set up here for the smooth animations
@@ -1922,7 +2423,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             public void actionPerformed(ActionEvent evt) {
 
                 //Xmove and YMove will keep chaning as long as the maximum number of animation pixels hasn't been reached
-                if ( x != 0 && Math.abs(XMove) < Math.abs(animated_Steps()) || y != 0 && Math.abs(YMove) < Math.abs(animated_Steps())) {
+                if (x != 0 && Math.abs(XMove) < Math.abs(animated_Steps()) || y != 0 && Math.abs(YMove) < Math.abs(animated_Steps())) {
                     XMove += x;
                     YMove += y;
                     repaint();
@@ -1941,12 +2442,12 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
                     //now we double check again, if the board either moved or merged
                     //this will dedicate block spawning
-                    if(didMove){
-                        blockSpawning=true;
-                    }else if(Arrays.deepEquals(oldBoard,board)){
-                        blockSpawning=false;
-                    } else{
-                        blockSpawning=true;
+                    if (didMove) {
+                        blockSpawning = true;
+                    } else if (Arrays.deepEquals(oldBoard, board)) {
+                        blockSpawning = false;
+                    } else {
+                        blockSpawning = true;
                     }
 
                     //which then calls my merge animation
@@ -1966,7 +2467,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             public void actionPerformed(ActionEvent evt) {
 
                 //we just keep chaning X and Ymove till 60 to help animate the merging of two blocks
-                if (x!=0 && Math.abs(XMove) < 60 || y!=0 && Math.abs(YMove) < 60) {
+                if (x != 0 && Math.abs(XMove) < 60 || y != 0 && Math.abs(YMove) < 60) {
                     XMove += x;
                     YMove += y;
                     repaint();
@@ -1992,7 +2493,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     //in the direction of merge again to fill out those outs
     //parameter: nothing
     //return: nothing
-    public void postMergeAnimation(){
+    public void postMergeAnimation() {
         timer3 = new Timer(3, new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
 
@@ -2000,7 +2501,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 biggestStep = 0;
                 animationTracker = 0;
 
-                Update_board(board,x,y);
+                Update_board(board, x, y);
                 how_many_steps_moved();
 
                 if ((x != 0 && Math.abs(XMove) < Math.abs(animated_Steps())) || (y != 0 && Math.abs(YMove) < Math.abs(animated_Steps()))) {
@@ -2013,7 +2514,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     YMove = 0;
                     anti_double_animation = false;
 
-                    if(blockSpawning){
+                    if (blockSpawning) {
                         newBlock();
                     }
                     copyBoard();
@@ -2026,20 +2527,20 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
                     //when there is a winner becomes true
                     //it'll repaint and show the winner image and resets the board
-                   if(checkWinner()==1){
-                      winner=true;
-                      repaint();
+                    if (checkWinner() == 1) {
+                        winner = true;
+                        repaint();
 
-                    //nothing really happens if the board can continue
-                   }else if(checkWinner()==2){
-                       System.out.println("continueeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-                   }else{
-                       //if board can't continue, this is set to true, which repaint
-                       //and that triggers the lost page to show up
-                       //and then board resets for a new game
-                     lost=true;
-                     repaint();
-                   }
+                        //nothing really happens if the board can continue
+                    } else if (checkWinner() == 2) {
+                        System.out.println();
+                    } else {
+                        //if board can't continue, this is set to true, which repaint
+                        //and that triggers the lost page to show up
+                        //and then board resets for a new game
+                        lost = true;
+                        repaint();
+                    }
                 }
             }
         });
@@ -2054,8 +2555,8 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     }
 
 
-    public static void main(String[] args) throws IOException{
-        game = new JFrame("2073");
+    public static void main(String[] args) throws IOException {
+        game = new JFrame("3072");
         Main panel = new Main();
         game.add(panel);
         game.pack();
@@ -2063,11 +2564,10 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
         //Background Music
         try {
-            AudioInputStream backgroundMusic = AudioSystem.getAudioInputStream(new File ("background_music.wav"));
+            AudioInputStream backgroundMusic = AudioSystem.getAudioInputStream(new File("background_music.wav"));
             music = AudioSystem.getClip();
             music.open(backgroundMusic);
-        }
-        catch (Exception  e) {
+        } catch (Exception e) {
         }
 
 
@@ -2077,7 +2577,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
         //Stops music when window closes
         game.addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing (java.awt.event.WindowEvent windowEvent) {
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
                 music.close();
             }
         });
