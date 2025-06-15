@@ -1,4 +1,5 @@
 
+//bunch of imports for all the stuff we have used
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -19,10 +20,14 @@ import javax.swing.Timer;
 
 
 public class Main extends JPanel implements ActionListener, MouseListener, MouseMotionListener, KeyListener {
+
+    //images used for the setting as well as the background of our game
     Image setting_icon;
     BufferedImage chongqing;
     BufferedImage newYork;
     BufferedImage seoul;
+
+    //the variables defined to use music to play background sound and our merge SFX
     static Clip music;
     Clip mergeEffect;
 
@@ -46,118 +51,114 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     Rectangle newYorkButton = new Rectangle(220, 220, 160, 200);
     Rectangle seoulButton = new Rectangle(410, 220, 160, 200);
     Rectangle resetButton = new Rectangle (260, 515, 80, 40);
+    Rectangle resetBoardButton = new Rectangle (20,500,100,40);
 
     int musicButton = 1;
     int SFXButton = 1;
     int backgroundChange = 1;
+    int skin = 0;
 
     static JFrame game;
 
     //1: Home, 2: Game, 3-11: Tutorial, 12: Credits, 13: Settings, 14: Custom Backgrounds
     int pageSwitch = 1;
 
+    //board used to keep track of current board state
     int[][] board = new int[5][5];
+
+    //saves oldboard state to do animation
     int[][] oldBoard = new int[5][5];
+
+    //keeps tracks of the number of steps each block needs move
     int[][] stepMoved = new int[5][5];
+
+    //keeps tracks of which block can be merged
     int[][] mergeStepMoved = new int[5][5];
 
-
+    //stores the skin set for our board pieces
     BufferedImage [] images_Number = new BufferedImage[11];
     BufferedImage [] images_Color = new BufferedImage[11];
     BufferedImage [] images_fruit = new BufferedImage[11];
 
     BufferedImage [][] imageCollection = {images_Number,images_Color,images_fruit};
 
+    //you win and you lose images
+    Image you_win = new ImageIcon("you_win.png").getImage();
+    Image you_lose = new ImageIcon("you_lose.png").getImage();
 
+    //self explanatory enough
     final int SQUARE_SIZE = 60;
     final int TOP_OFFSET = 150;
     final int BORDER_SIZE = 150;
 
-
+    //self explanatory enough
     static int score = 0;
     static int highScore = 0 ;
 
-
-    //used to move the blocks
-    int x = 20;
-    int y = 20;
+    // x,y, xMove, and Ymove are used for animation of the blocks
+    int x = 0;
+    int y = 0;
 
     int XMove = 0;
     int YMove = 0;
 
+    //these trackers are used to track how many steps the blocks can move in different directions
     int rightTracker;
     int leftTracker;
     int downTracker;
     int upTracker;
 
+    //animationTracker is how many pixels the board pieces are moving
     int animationTracker;
+    //biggest show tells me the biggest number of steps a board piece needs to move within a current board
     int biggestStep = 0;
 
+    //timer used for animations
     Timer timer;
     Timer timer2;
     Timer timer3;
+    Timer timer4;
+    Timer timer5;
 
+    //these variables are used for anti key spamming
     long lastInputTime;
     long cooldown = 200;
     int key;
 
+    //anti_double_animation also used for anti key spamming
+    //prevent you from hitting two keys at a time, which sort of looks like
+    //the blocks are going diagonal
     boolean anti_double_animation = false;
+
+    //this variable is responsible for checking if a block can spawn on the board
     boolean blockSpawning=true;
+
+    //did move checks if the board actually changed or not
     boolean didMove=false;
 
+    //these two check whether or not to show the lost or winner screen
+    boolean winner = false;
+    boolean lost = false;
+
+    //index decides based on the value of the board pieces, which picture to show exactly
     int index;
 
+    //these two are used for double buffering and drawing graphics
     Image offscreenImage;
     Graphics2D offscreenGraphics;
 
 
-    //constructor
+    //constructor --> initial set up
     public Main() throws IOException{
+        //set the size
         setPreferredSize(new Dimension(600, 600));
         setBackground(new Color(222, 207, 189));
 
+        //get all the images that we need
         setting_icon = Toolkit.getDefaultToolkit().getImage("Setting_Icon.png");
         chongqing = ImageIO.read(new File("chongqingBackground.png"));
         newYork = ImageIO.read(new File("newYorkBackground.png"));
         seoul = ImageIO.read(new File("seoulBackground.png"));
-
-        addMouseListener(this); //detects button clicks
-        addMouseMotionListener(this);
-        addKeyListener(this);
-        setFocusable(true);
-        requestFocusInWindow();
-
-        //starter blocks
-        int starterBlock1_X = (int) (Math.random() * 5);
-        int starterBlock1_Y = (int) (Math.random() * 5);
-
-        int starterBlock2_X = (int) (Math.random() * 5);
-        int starterBlock2_Y = (int) (Math.random() * 5);
-
-        while (starterBlock2_X == starterBlock1_X && starterBlock2_Y == starterBlock1_Y) {
-            starterBlock2_X = (int) (Math.random() * 5);
-            starterBlock2_Y = (int) (Math.random() * 5);
-        }
-
-        int starterBlock3_X = (int) (Math.random() * 5);
-        int starterBlock3_Y = (int) (Math.random() * 5);
-
-
-        while (starterBlock3_X == starterBlock2_X && starterBlock3_Y == starterBlock2_Y
-                || starterBlock3_X == starterBlock1_X && starterBlock3_Y == starterBlock1_Y) {
-            starterBlock2_X = (int) (Math.random() * 5);
-            starterBlock2_Y = (int) (Math.random() * 5);
-        }
-
-
-        board[starterBlock1_Y][starterBlock1_X] = 3;
-        board[starterBlock2_Y][starterBlock2_X] = 3;
-        board[starterBlock3_Y][starterBlock3_X] = 3;
-
-        //to intialize so that i can draw the blocks first and then animate the old board to the new board
-        oldBoard[starterBlock1_Y][starterBlock1_X] = 3;
-        oldBoard[starterBlock2_Y][starterBlock2_X] = 3;
-        oldBoard[starterBlock3_Y][starterBlock3_X] = 3;
 
         int start = 3;
 
@@ -200,23 +201,68 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             e.printStackTrace();
         }
 
+        //add all the listeners that can help detecto button clicks and key clicks
+        addMouseListener(this); //detects button clicks
+        addMouseMotionListener(this);
+        addKeyListener(this);
+        setFocusable(true);
+        requestFocusInWindow();
+
+        //starter blocks that is randomly generated on the board
+        int starterBlock1_X = (int) (Math.random() * 5);
+        int starterBlock1_Y = (int) (Math.random() * 5);
+
+        int starterBlock2_X = (int) (Math.random() * 5);
+        int starterBlock2_Y = (int) (Math.random() * 5);
+
+        while (starterBlock2_X == starterBlock1_X && starterBlock2_Y == starterBlock1_Y) {
+            starterBlock2_X = (int) (Math.random() * 5);
+            starterBlock2_Y = (int) (Math.random() * 5);
+        }
+
+        int starterBlock3_X = (int) (Math.random() * 5);
+        int starterBlock3_Y = (int) (Math.random() * 5);
+
+
+        while (starterBlock3_X == starterBlock2_X && starterBlock3_Y == starterBlock2_Y
+                || starterBlock3_X == starterBlock1_X && starterBlock3_Y == starterBlock1_Y) {
+            starterBlock2_X = (int) (Math.random() * 5);
+            starterBlock2_Y = (int) (Math.random() * 5);
+        }
+
+        //the board is set to these random blocks
+        board[starterBlock1_Y][starterBlock1_X] = 3;
+        board[starterBlock2_Y][starterBlock2_X] = 3;
+        board[starterBlock3_Y][starterBlock3_X] = 3;
+
+
+        //old board is also set to these blocks
+        //this is to intialize so that i can draw the blocks first and then animate the old board to the new board
+        oldBoard[starterBlock1_Y][starterBlock1_X] = 3;
+        oldBoard[starterBlock2_Y][starterBlock2_X] = 3;
+        oldBoard[starterBlock3_Y][starterBlock3_X] = 3;
+
+
     }
 
-
-
-
+    //used to do graphics
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2D = (Graphics2D) g;
         drawnPages(g2D);
     }
 
+    //description: this method is used shift all the blocks to the left, right, up, or down
+    //parameter: it will take in the current board as well as the dirction in both X and Y to
+    //decide how it will update the board
+    //return: nothing
     public void Update_board(int[][] board1, int directionX, int directionY) {
 
-
+        //right
         if (directionX > 0) {
-
-
+            //i loop through the entire board 5 times to check if the next block is empty
+            //if it is, eventually, all the blocks are shifted to the right
+            //rest of the directions basically do the same thing
             for (int checkAll = 1; checkAll <= 5; checkAll++) {
                 for (int row = 0; row < 5; row++) {
                     for (int column = 0; column < 4; column++) {
@@ -227,10 +273,8 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     }
                 }
             }
-
-
+        //left
         } else if (directionX < 0) {
-
 
             for (int checkAll = 1; checkAll <= 5; checkAll++) {
                 for (int row = 0; row < 5; row++) {
@@ -243,33 +287,27 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 }
             }
 
-
+        //down
         } else if (directionY > 0) {
-
 
             for (int checkAll = 1; checkAll <= 5; checkAll++) {
                 for (int column = 0; column < 5; column++) {
                     for (int row = 0; row < 4; row++) {
 
-
                         if (board1[row][column] != 0 && board1[row + 1][column] == 0) {
                             board1[row + 1][column] = board1[row][column];
                             board1[row][column] = 0;
                         }
-
-
                     }
                 }
             }
 
-
+        //up
         } else if (directionY < 0) {
-
 
             for (int checkAll = 1; checkAll <= 5; checkAll++) {
                 for (int column = 0; column < 5; column++) {
                     for (int row = 4; row > 0; row--) {
-
 
                         if (board1[row][column] != 0 && board1[row - 1][column] == 0) {
                             board1[row - 1][column] = board1[row][column];
@@ -281,17 +319,22 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         }
     }
 
+    //description: it will check if the board can randomly generate a new block
+    //if so, it will create a new block/board piece
+    //parameter: nothing
+    //return: nothing
     public void newBlock() {
 
-
+        //first randomly generate the coordinates of a random block
         int randomblockX = (int) (Math.random() * 5);
         int randomblockY = (int) (Math.random() * 5);
 
-
         for(int i=0; i< 5; i++) {
-
             for (int j = 0; j < 5; j++) {
+
+                //first i will check that a empty spot, does exist
                 if (board[i][j] == 0) {
+                    //then i'll keep randomly generate a block position that is empty
                     while (board[randomblockY][randomblockX] != 0) {
                         randomblockX = (int) (Math.random() * 5);
                         randomblockY = (int) (Math.random() * 5);
@@ -304,19 +347,25 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     }
 
 
-
+    //description: this methods helps to keep track how many steps each block needs to move
+    //depending on the direction
+    //parameter: nothing
+    //return: nothing
     public void how_many_steps_moved() {
 
-
-        //to reset the stepMoved 2D array to prevent remeants from the last time messing up animations
+        //to reset the stepMoved 2D array to prevent remnants from messing things up
         for(int i = 0; i<5; i++){
             for(int j = 0; j<5; j++){
                 stepMoved[i][j]=0;
             }
         }
 
-
+        //right
         if (x > 0 && y == 0) {
+            //i start from subtracting the index of the right side against blocks that are not empty from the position of the board
+            //before it updates, which tells me how many steps each block needs to move in the right direction
+            //all other direction, basically work the same way
+
             for (int i = 0; i < 5; i++) {
                 rightTracker = 4;
                 for (int j = 4; j >= 0; j--) {
@@ -326,6 +375,8 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     }
                 }
             }
+
+        //left
         } else if (x < 0 && y == 0) {
             for (int i = 0; i < 5; i++) {
                 leftTracker = 0;
@@ -337,7 +388,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 }
             }
 
-
+        //down
         } else if (y > 0 && x == 0) {
             for (int i = 0; i < 5; i++) {
                 downTracker = 4;
@@ -348,6 +399,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     }
                 }
             }
+        //up
         } else if (y < 0 && x == 0) {
             for (int i = 0; i < 5; i++) {
                 upTracker = 0;
@@ -362,7 +414,13 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     }
 
 
+    //description: this method helps to keep track the biggest number of animation pixels
+    //the blocks need to move within a board
+    //parameter: nothing
+    //return: the largest number of animation pixels that needs to be animated
     public int animated_Steps() {
+
+        //we first find the biggest number of steps moved by looping through stepMoved
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
                 if (Math.abs(stepMoved[i][j]) > Math.abs(biggestStep)) {
@@ -370,13 +428,17 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 }
             }
         }
+        //multiply biggest step with 60 to find the largest possible animation pixel
+        //that needs to be animated
         animationTracker = biggestStep * 60;
-
 
         return animationTracker;
     }
 
-
+    //description: this method is used to update the old board to equal the new board
+    //when the animations are finished and is used help draw the board when all blocks are static
+    //parameter: nothing
+    //return: nothing
     public void copyBoard() {
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
@@ -385,34 +447,47 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         }
     }
 
-
+    //description: it will check if the pieces in the board can be merged
+    //parameter: nothing
+    //return: nothing
     public void merge() {
 
+        //this is used to play the sound effect if merging occurs
         int merge_count_SFX=0;
 
+        //we reset this mergeStepdMoved though, which is used to keep track of which block
+        //needs to be merged and helps with the merging animation
         for(int i =0; i<5; i++){
             for(int j = 0; j<5; j++){
                 mergeStepMoved[i][j]=0;
             }
         }
 
-
-        if (x > 0 && y == 0) { // Right
+        // Right
+        if (x > 0 && y == 0) {
             for (int row = 0; row < 5; row++) {
                 for (int col = 4; col > 0; col--) {
+                    //i basically check that if the adjacent block is the same i will merge
+                    //to merge, i set the current block to twice the value and set the adjacent block to 0
+                    //and i do that for all directions
                     if (board[row][col] != 0 && board[row][col] == board[row][col - 1]) {
                         board[row][col] *= 2;
 
+                        //i also do add the updated board piece to the score board
+                        //and do that for the rest of the direction as well
                         score+=board[row][col];
 
                         board[row][col - 1] = 0;
                         mergeStepMoved[row][col - 1] = 1;
+
+                        //this is incremented to prove that merge happened and a sound effect
+                        //will play at the end
                         merge_count_SFX++;
                     }
                 }
             }
 
-
+        //left
         } else if (x < 0 && y == 0) {
             for (int row = 0; row < 5; row++) {
                 for (int col = 0; col < 4; col++) {
@@ -425,6 +500,9 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     }
                 }
             }
+
+
+        //down
         } else if (x == 0 && y > 0) {
             for (int col = 0; col < 5; col++) {
                 for (int row = 4; row > 0; row--) {
@@ -437,6 +515,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     }
                 }
             }
+        //up
         } else if (x == 0 && y < 0) {
             for (int col = 0; col < 5; col++) {
                 for (int row = 0; row < 4; row++) {
@@ -451,9 +530,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             }
         }
 
-
-
-
+        //here is where we play the audio if merge does happen
         if(merge_count_SFX>0){
             try {
                 AudioInputStream mergeEffectSound = AudioSystem.getAudioInputStream(new File ("mergeEffect.wav"));
@@ -466,23 +543,31 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                 mergeEffect.start();
             }
 
+        //i also update my highscore here if the score is higher than the high score
         if(score>highScore){
             highScore=score;
         }
 
         }
 
-
     }
 
+    //description: this is exaclty as it sounds like, it helps me to check if the board
+    //has a winning piece, the board is lost, or the board can continue
+    //parameter: nothing
+    //return: nothing
     public int checkWinner() {
 
+        //this is used to check if the board is empty
         boolean isEmpty = false;
 
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
-                if (board[i][j] == 24) {
+
+                //we loop through the board to see if it has the winning block
+                if (board[i][j] == 3072) {
                     return 1;
+                //or has empty space
                 }else if(board[i][j]==0){
                     isEmpty=true;
                 }
@@ -492,10 +577,18 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         if(isEmpty){
             return 2;
         }
+
+        //or by default the board is full
+        //and keep in mind that this method is only called after we merge
         return 3;
     }
 
+    //description: this method reset the board and sets it up for a new game
+    //parameter: nothing
+    //return: nothing
     public void resetBoard(){
+
+        //resets the board here by making everything 0
         for(int i = 0; i<5; i++){
             for(int j = 0 ; j<5; j++){
                 board[i][j]=0;
@@ -503,6 +596,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             }
         }
 
+        //then we randomly generate 3 new blocks
         int starterBlock1_X = (int) (Math.random() * 5);
         int starterBlock1_Y = (int) (Math.random() * 5);
 
@@ -528,15 +622,19 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         board[starterBlock2_Y][starterBlock2_X] = 3;
         board[starterBlock3_Y][starterBlock3_X] = 3;
 
-        //to intialize so that i can draw the blocks first and then animate the old board to the new board
         oldBoard[starterBlock1_Y][starterBlock1_X] = 3;
         oldBoard[starterBlock2_Y][starterBlock2_X] = 3;
         oldBoard[starterBlock3_Y][starterBlock3_X] = 3;
 
+        //reset the score to 0 as well then repaint
         score=0;
         repaint();
     }
-
+    //description: this method helps you check for what happens when you lose
+    //parameter: nothing
+    //return: nothing
+    //press control f to search for fillBoardNoMerge method in another location
+    //more description over there on what you can do with this
     public void fillBoardNoMerges() {
         int[][] values = {
                 {3, 6, 12, 3, 6},
@@ -568,7 +666,7 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.fillRoundRect(167, 110, 270, 110, 80, 80);
             g2D.setColor(Color.BLACK);
             g2D.setFont(new Font("Monospaced", Font.BOLD, 70));
-            g2D.drawString("19683", 195, 187);
+            g2D.drawString("2073", 210, 187);
             g2D.setStroke(new BasicStroke(6));
             g2D.drawRoundRect(167, 110, 270, 110, 80, 80);
 
@@ -639,14 +737,13 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         }
         else if (pageSwitch == 2){
 
-
-
-
+            //makes the offscreen graphics if it doesn't exist
             if (offscreenGraphics == null) {
                 offscreenImage = createImage(this.getWidth(), this.getHeight());
                 offscreenGraphics = (Graphics2D) offscreenImage.getGraphics();
             }
 
+            //set the colour
             offscreenGraphics.setColor(getBackground());
             offscreenGraphics.fillRect(0, 0, getWidth(), getHeight());
 
@@ -665,16 +762,15 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             }
 
 
-
+            //draws the background board
             offscreenGraphics.setColor(new Color(187, 173, 160)); //250, 248, 239
             offscreenGraphics.fillRoundRect(140, 140, 320, 320, 30, 30);
-
 
             offscreenGraphics.setColor(Color.black);
             offscreenGraphics.setStroke(new BasicStroke(1));
             offscreenGraphics.drawRoundRect(140, 140, 320, 320, 30, 30);
 
-
+            //draws the outline of each board pieces
             for (int i = 0; i < 5; i++) {
                 for (int j = 0; j < 5; j++) {
                     offscreenGraphics.setColor(new Color(250, 248, 239));
@@ -685,47 +781,52 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             }
 
 
+            //this is for animating the actual blocks
             for (int i = 0; i < 5; i++) {
                 for (int j = 0; j < 5; j++) {
 
-
-
-                    //this variable will be used to decide which skin the user is choosing
-                    //might also need to make this global to change the graphics around
-                    int skin = 2;
-
-
+                    //first we get the value of the current piece
                     int value = oldBoard[i][j];
 
+                    //do some log math which tells us the exponent that it has, which also corresponds to the index
+                    //of the picture that it should have
                     index = (int) (Math.log(value/3.0)/Math.log(2));
 
+                    //this is created so that we can used clipped shapes on images
                     Graphics2D g2dTile = (Graphics2D) offscreenGraphics.create();
 
+                    //now if the board states are different, we are currently animating all the blocks
+                    //moving to one direction
                     if (oldBoard[i][j] != 0 && !Arrays.deepEquals(oldBoard, board)) {
 
-
+                        //predefine x and y draw
                         int x_draw = 0;
                         int y_draw = 0;
 
+                        //right
                         if (x > 0 && y == 0) {
 
+                            //first we see if there is merge animation that needs to be animated
                             if (mergeStepMoved[i][j] != 0) {
 
                                 x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
                                 y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
+                            //then we see if there is movement animation that needs to be animated
                             } else if (j * SQUARE_SIZE + BORDER_SIZE + XMove < j * SQUARE_SIZE + BORDER_SIZE + stepMoved[i][j] * 60) {
 
                                 x_draw=j * SQUARE_SIZE + BORDER_SIZE + XMove;
                                 y_draw=i * SQUARE_SIZE + TOP_OFFSET + YMove;
 
+                            //otherwise, when the current block no longer needs to move, it will not move and remain static
+                            //i basically do that for all other directions
                             } else {
-
                                 x_draw= j * SQUARE_SIZE + BORDER_SIZE + stepMoved[i][j] * 60;
                                 y_draw = i * SQUARE_SIZE + TOP_OFFSET;
 
                             }
 
+                        //left
                         } else if (x < 0 && y == 0) {
 
                             if (mergeStepMoved[i][j] != 0) {
@@ -744,6 +845,8 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                                 y_draw = i * SQUARE_SIZE + TOP_OFFSET;
 
                             }
+
+                        //down
                         } else if (y > 0 && x == 0) {
 
                             if (mergeStepMoved[i][j] != 0) {
@@ -764,6 +867,8 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                                 y_draw = i * SQUARE_SIZE + TOP_OFFSET + stepMoved[i][j] * 60;
 
                             }
+
+                        //up
                         } else if (y < 0 && x == 0) {
 
                             if (mergeStepMoved[i][j] != 0) {
@@ -784,12 +889,16 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                             }
                         }
 
+                        //after pre defining the x and y draw
+                        //here is where i actually draw it
                         Shape clip = new RoundRectangle2D.Float(x_draw, y_draw, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
                         g2dTile.setClip(clip);
                         g2dTile.drawImage(imageCollection[skin][index],x_draw, y_draw, SQUARE_SIZE, SQUARE_SIZE, null);
                         g2dTile.dispose();
 
 
+                    //after all the animating are done, if the oldboard and board is the same, that means no changes has occured
+                    //no animation or merge is needed, then the static board will be drawn here
                     } else if (Arrays.deepEquals(oldBoard, board) && oldBoard[i][j] != 0) {
 
                         Shape clip = new RoundRectangle2D.Float(j * SQUARE_SIZE + BORDER_SIZE, i * SQUARE_SIZE + TOP_OFFSET, SQUARE_SIZE, SQUARE_SIZE, 20, 20);
@@ -803,7 +912,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
 
             g2D.drawImage(offscreenImage, 0, 0, this);
 
-
             //Back Button
             g2D.setFont(new Font("Plain", Font.BOLD, 18));
             g2D.setColor(new Color(136, 55, 23));
@@ -816,16 +924,72 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.setColor(new Color(239, 211, 204));
             g2D.drawString("BACK", 10, 27);
 
-        }
+            //new game button
+            g2D.setFont(new Font("Plain", Font.BOLD, 18));
+            g2D.setColor(new Color(136, 55, 23));
+            g2D.fillRoundRect(resetBoardButton.x,resetBoardButton.y, resetBoardButton.width, resetBoardButton.height, 25, 25);
+            g2D.setColor(Color.BLACK);
+            g2D.setStroke(new BasicStroke(2));
+            g2D.drawRoundRect(resetBoardButton.x, resetBoardButton.y, resetBoardButton.width, resetBoardButton.height, 25, 25);
 
+            g2D.setColor(new Color(239, 211, 204));
+            g2D.drawString("new Board", 22, 525);
+
+            //score display
+
+            g2D.setColor(Color.black);
+            g2D.drawString("score: "+ score, 190, 85);
+
+            //highscore display
+            g2D.setColor(Color.red);
+
+            g2D.drawString("high Score: " + highScore, 325, 85);
+
+
+            if(winner){
+                //this will display me an image if there is a winning piece on the board
+                winner=false;
+                lost=false;
+
+                offscreenGraphics.setComposite(AlphaComposite.Clear);
+                offscreenGraphics.fillRect(0, 0, 600, 600);
+                offscreenGraphics.setComposite(AlphaComposite.SrcOver);
+
+                offscreenGraphics.drawImage(you_win,0,0,600,600,null);
+                g2D.drawImage(offscreenImage,0,0,this);
+
+                timer4 = new Timer(4000,e->{
+                    resetBoard();
+                });
+                timer4.setRepeats(false);
+                timer4.start();
+
+            }else if(lost){
+                //this will display me an image if the board is full and player lost
+                winner=false;
+                lost=false;
+
+                offscreenGraphics.setComposite(AlphaComposite.Clear);
+                offscreenGraphics.fillRect(0, 0, 600, 600);
+                offscreenGraphics.setComposite(AlphaComposite.SrcOver);
+
+                offscreenGraphics.drawImage(you_lose,0,0,600,600,null);
+                g2D.drawImage(offscreenImage,0,0,this);
+
+                timer5 = new Timer(4000,e->{
+                    resetBoard();
+                });
+                timer5.setRepeats(false);
+                timer5.start();
+            }
+
+        }
 
         else if (pageSwitch == 3) {
             setBackground(new Color(237, 225, 200));
 
-
             Image tutorialPicOne = Toolkit.getDefaultToolkit().getImage("tutorialPicOne.png");
             g2D.drawImage(tutorialPicOne, 100, 100, 400, 400, this);
-
 
             g2D.setStroke(new BasicStroke(4));
             g2D.setColor(Color.BLACK);
@@ -1314,8 +1478,6 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             g2D.drawString("BACKGROUNDS", 213, 455);
 
 
-
-
             if (musicButton == 1) {
                 //Music ON Texts
                 g2D.drawRoundRect(musicOn.x, musicOn.y, musicOn.width, musicOn.height, 20, 20); //MUSIC
@@ -1502,6 +1664,9 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             if (backButton.contains(clicked)) {
                 pageSwitch = 1;
                 repaint();
+            }else if(resetBoardButton.contains(clicked)){
+                pageSwitch=2;
+                resetBoard();
             }
         }
 
@@ -1632,18 +1797,22 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             }
             else if (chongqingButton.contains(clicked)){
                 backgroundChange = 2;
+                skin=0;
                 repaint();
             }
             else if (newYorkButton.contains(clicked)){
                 backgroundChange = 3;
+                skin=1;
                 repaint();
             }
             else if (seoulButton.contains(clicked)){
                 backgroundChange = 4;
+                skin=2;
                 repaint();
             }
             else if (resetButton.contains(clicked)){
                 backgroundChange = 1;
+
                 repaint();
             }
         }
@@ -1680,13 +1849,19 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     // KeyListener methods
     public void keyPressed(KeyEvent kp) {
 
+        //this method will only activate if we are on the correct page
         if (pageSwitch == 2) {
 
+            //we first store the current time of the system
             long currentTime = System.currentTimeMillis();
 
+            //if the current time is not long enough from the last input time
+            //you can't press another key
             if (currentTime - lastInputTime >= cooldown) {
                 key = kp.getKeyCode();
 
+                //now according to the direction
+                //x and y will be assigned values to help animate the blocks
                 if (key == KeyEvent.VK_RIGHT && !anti_double_animation) {
                     x = 4;
                     y = 0;
@@ -1711,19 +1886,29 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         }
     }
 
+    //description: this method helps to animate the blocks movement only! no merge animation
+    //parameter: nothing
+    //return: nothing
     public void startMoveAnimation() {
 
-
+        //we set both biggest step to 0 and animation tracker each time for the changing board state
+        //these were used to calculate the biggest number of animation pixels that needed to be aniamted
         biggestStep = 0;
         animationTracker = 0;
+
+        //this is also set to true to prevent double animation
         anti_double_animation = true;
 
-
+        //we first copy the board to save to old board state
         copyBoard();
+
+        //we then update the board to move all the blocks in a certain direction
         Update_board(board, x, y);
+
+        //then we calculate how many steps each block has moved
         how_many_steps_moved();
 
-
+        //if the board still equal though, it will prevent new blocks from spawning
         if(Arrays.deepEquals(oldBoard,board)){
             blockSpawning=false;
             didMove=false;
@@ -1732,12 +1917,11 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
             didMove=true;
         }
 
-
-
+        //a timer is set up here for the smooth animations
         timer = new Timer(3, new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
 
-
+                //Xmove and YMove will keep chaning as long as the maximum number of animation pixels hasn't been reached
                 if ( x != 0 && Math.abs(XMove) < Math.abs(animated_Steps()) || y != 0 && Math.abs(YMove) < Math.abs(animated_Steps())) {
                     XMove += x;
                     YMove += y;
@@ -1748,9 +1932,15 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     XMove = 0;
                     YMove = 0;
 
+                    //after we finishing the movement animation we copy board again
                     copyBoard();
                     repaint();
+
+                    //update the board again with merge
                     merge();
+
+                    //now we double check again, if the board either moved or merged
+                    //this will dedicate block spawning
                     if(didMove){
                         blockSpawning=true;
                     }else if(Arrays.deepEquals(oldBoard,board)){
@@ -1758,8 +1948,9 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     } else{
                         blockSpawning=true;
                     }
-                    mergeAnimation();
 
+                    //which then calls my merge animation
+                    mergeAnimation();
 
                 }
             }
@@ -1767,12 +1958,14 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         timer.start();
     }
 
-
+    //description: this helps with the merge animation
+    //parameter: nothing
+    //return: nothing
     public void mergeAnimation() {
         timer2 = new Timer(3, new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
 
-
+                //we just keep chaning X and Ymove till 60 to help animate the merging of two blocks
                 if (x!=0 && Math.abs(XMove) < 60 || y!=0 && Math.abs(YMove) < 60) {
                     XMove += x;
                     YMove += y;
@@ -1781,8 +1974,12 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     timer2.stop();
                     XMove = 0;
                     YMove = 0;
+
+                    //we then copy the board again
                     copyBoard();
                     repaint();
+
+                    //we then run this post merge animation
                     postMergeAnimation();
                 }
             }
@@ -1790,19 +1987,21 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
         timer2.start();
     }
 
-
+    //description: this method animates the board one more time after merging
+    //because there will be holes after merging and will need to shift all the pieces
+    //in the direction of merge again to fill out those outs
+    //parameter: nothing
+    //return: nothing
     public void postMergeAnimation(){
         timer3 = new Timer(3, new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
 
-
+                //basically same exact process are movement animations
                 biggestStep = 0;
                 animationTracker = 0;
 
-
                 Update_board(board,x,y);
                 how_many_steps_moved();
-
 
                 if ((x != 0 && Math.abs(XMove) < Math.abs(animated_Steps())) || (y != 0 && Math.abs(YMove) < Math.abs(animated_Steps()))) {
                     XMove += x;
@@ -1814,33 +2013,38 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
                     YMove = 0;
                     anti_double_animation = false;
 
-
                     if(blockSpawning){
                         newBlock();
                     }
                     copyBoard();
                     repaint();
 
-//                  YOU CAN uncomment and call this method to test the lose page!
+//                  YOU CAN uncomment and call this method to test the lost page!
 //                  since it will take some time to fill the board
 //                  fillBoardNoMerges();
 
+
+                    //when there is a winner becomes true
+                    //it'll repaint and show the winner image and resets the board
                    if(checkWinner()==1){
-                       System.out.println("winnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn");
+                      winner=true;
+                      repaint();
+
+                    //nothing really happens if the board can continue
                    }else if(checkWinner()==2){
                        System.out.println("continueeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
                    }else{
-                       System.out.println("loseeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+                       //if board can't continue, this is set to true, which repaint
+                       //and that triggers the lost page to show up
+                       //and then board resets for a new game
+                     lost=true;
+                     repaint();
                    }
-
                 }
             }
         });
         timer3.start();
     }
-
-
-
 
     public void keyReleased(KeyEvent e) {
     }
@@ -1850,15 +2054,12 @@ public class Main extends JPanel implements ActionListener, MouseListener, Mouse
     }
 
 
-
-
     public static void main(String[] args) throws IOException{
-        game = new JFrame("19683");
+        game = new JFrame("2073");
         Main panel = new Main();
         game.add(panel);
         game.pack();
         game.setVisible(true);
-
 
         //Background Music
         try {
