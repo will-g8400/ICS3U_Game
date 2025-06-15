@@ -1,3 +1,8 @@
+//Name: Will Gao, Aiden Wang
+//Date: June 15, 2025
+//Purpose: this program is a spin-off version of the online game 2048.
+//the slight difference being our game is called 3072 and instead merging blocks of 2's
+//you are merging block of 3's and our board is 5 by 5.
 
 //bunch of imports for all the stuff we have used
 
